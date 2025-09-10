@@ -1,5 +1,5 @@
 {
-  "id": "17a14f1b-dd07-4373-9d29-3c02df45447f",
+  "id": "5245989a-9fac-45c5-8acc-46a6fa70c4e1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -121,38 +121,27 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.pdx-diy_post": {
-      "name": "pdx-diy_post",
+    "public.pdx-diy_event": {
+      "name": "pdx-diy_event",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "integer",
+          "type": "varchar(255)",
           "primaryKey": true,
-          "notNull": true,
-          "identity": {
-            "type": "byDefault",
-            "name": "pdx-diy_post_id_seq",
-            "schema": "public",
-            "increment": "1",
-            "startWith": "1",
-            "minValue": "1",
-            "maxValue": "2147483647",
-            "cache": "1",
-            "cycle": false
-          }
+          "notNull": true
         },
-        "name": {
-          "name": "name",
-          "type": "varchar(256)",
+        "title": {
+          "name": "title",
+          "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "createdById": {
           "name": "createdById",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "createdAt": {
           "name": "createdAt",
@@ -168,42 +157,11 @@
           "notNull": false
         }
       },
-      "indexes": {
-        "created_by_idx": {
-          "name": "created_by_idx",
-          "columns": [
-            {
-              "expression": "createdById",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "name_idx": {
-          "name": "name_idx",
-          "columns": [
-            {
-              "expression": "name",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
+      "indexes": {},
       "foreignKeys": {
-        "pdx-diy_post_createdById_pdx-diy_user_id_fk": {
-          "name": "pdx-diy_post_createdById_pdx-diy_user_id_fk",
-          "tableFrom": "pdx-diy_post",
+        "pdx-diy_event_createdById_pdx-diy_user_id_fk": {
+          "name": "pdx-diy_event_createdById_pdx-diy_user_id_fk",
+          "tableFrom": "pdx-diy_event",
           "tableTo": "pdx-diy_user",
           "columnsFrom": [
             "createdById"

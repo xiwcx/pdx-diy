@@ -19,6 +19,8 @@ export default async function Home() {
 							Welcome to PDX DIY
 						</p>
 
+						<Link href="/events/create">Create event</Link>
+
 						<div>
 							<p>
 								{session && <span>Logged in as {session.user?.name}</span>}
