@@ -1,6 +1,20 @@
 import { relations, sql } from "drizzle-orm";
 import { index, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
+import type { PgColumnsBuilders } from "drizzle-orm/pg-core/columns/all";
 import type { AdapterAccount } from "next-auth/adapters";
+import { uuidv7 } from "uuidv7";
+
+/**
+ * A helper function to create a default UUID column.
+ * @param d - The Drizzle ORM column builder.
+ * @returns A Drizzle ORM column builder with a default UUID v7.
+ */
+const defaultUUID = (d: PgColumnsBuilders) =>
+	d
+		.varchar({ length: 255 })
+		.notNull()
+		.primaryKey()
+		.$defaultFn(() => uuidv7());
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -52,6 +66,31 @@ export const posts = createTable(
 );
 
 /**
+ * Events table schema for storing community events.
+ *
+ * TODO:
+ * - make image uploads work
+ * - make addresses work
+ * - make WYSIWYG editor
+ *   - sanitization
+ *   - validation
+ *   - store
+ *   - de/serialization
+ *
+ * @table pdx-diy_event
+ */
+export const events = createTable("event", (d) => ({
+	id: defaultUUID(d),
+	title: d.varchar({ length: 255 }).notNull(),
+	createdById: d.varchar({ length: 255 }).references(() => users.id),
+	createdAt: d
+		.timestamp({ withTimezone: true })
+		.default(sql`CURRENT_TIMESTAMP`)
+		.notNull(),
+	updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+}));
+
+/**
  * Users table schema for storing user account information.
  *
  * Supports NextAuth.js authentication with email-based identification.
@@ -60,11 +99,7 @@ export const posts = createTable(
  * @table pdx-diy_user
  */
 export const users = createTable("user", (d) => ({
-	id: d
-		.varchar({ length: 255 })
-		.notNull()
-		.primaryKey()
-		.$defaultFn(() => crypto.randomUUID()),
+	id: defaultUUID(d),
 	name: d.varchar({ length: 255 }),
 	email: d.varchar({ length: 255 }).notNull(),
 	emailVerified: d

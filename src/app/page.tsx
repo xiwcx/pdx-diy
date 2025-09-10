@@ -30,6 +30,8 @@ export default async function Home() {
 					<div>
 						<p>Welcome to PDX DIY</p>
 
+						<Link href="/events/create">Create event</Link>
+
 						<div>
 							{session ? (
 								<p>
