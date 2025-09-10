@@ -2,9 +2,20 @@ import Link from "next/link";
 
 import { auth } from "~/server/auth";
 import { HydrateClient, api } from "~/trpc/server";
+import { captureEvent } from "~/server/posthog";
 
 export default async function Home() {
 	const session = await auth();
+
+	// Track page visit in PostHog
+	await captureEvent(
+		session?.user?.id ?? 'anonymous',
+		'home_page_visited',
+		{
+			is_authenticated: !!session,
+			user_name: session?.user?.name,
+		}
+	);
 
 	return (
 		<HydrateClient>

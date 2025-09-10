@@ -16,6 +16,13 @@ export const env = createEnv({
 		NODE_ENV: z
 			.enum(["development", "test", "production"])
 			.default("development"),
+		POSTHOG_KEY: z.string(),
+		POSTHOG_HOST: z.string().url(),
+		R2_ACCOUNT_ID: z.string(),
+		R2_ACCESS_KEY_ID: z.string(),
+		R2_SECRET_ACCESS_KEY: z.string(),
+		R2_BUCKET_NAME: z.string(),
+		R2_PUBLIC_URL: z.string().url(),
 	},
 
 	/**
@@ -24,7 +31,8 @@ export const env = createEnv({
 	 * `NEXT_PUBLIC_`.
 	 */
 	client: {
-		// NEXT_PUBLIC_CLIENTVAR: z.string(),
+		NEXT_PUBLIC_POSTHOG_KEY: z.string(),
+		NEXT_PUBLIC_POSTHOG_HOST: z.string().url(),
 	},
 
 	/**
@@ -36,6 +44,15 @@ export const env = createEnv({
 		AUTH_RESEND_KEY: process.env.AUTH_RESEND_KEY,
 		DATABASE_URL: process.env.DATABASE_URL,
 		NODE_ENV: process.env.NODE_ENV,
+		POSTHOG_KEY: process.env.POSTHOG_KEY,
+		POSTHOG_HOST: process.env.POSTHOG_HOST,
+		R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,
+		R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID,
+		R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
+		R2_BUCKET_NAME: process.env.R2_BUCKET_NAME,
+		R2_PUBLIC_URL: process.env.R2_PUBLIC_URL,
+		NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+		NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
 	},
 	/**
 	 * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

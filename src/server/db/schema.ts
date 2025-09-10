@@ -39,11 +39,23 @@ export const events = createTable("event", (d) => ({
 	id: defaultUUID(d),
 	title: d.varchar({ length: 255 }).notNull(),
 	createdById: d.varchar({ length: 255 }).references(() => users.id),
+	heroImageId: d.varchar({ length: 255 }).references(() => assets.id),
 	createdAt: d
 		.timestamp({ withTimezone: true })
 		.default(sql`CURRENT_TIMESTAMP`)
 		.notNull(),
 	updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+}));
+
+export const eventsRelations = relations(events, ({ one, many }) => ({
+	createdBy: one(users, {
+		fields: [events.createdById],
+		references: [users.id],
+	}),
+	heroImage: one(assets, {
+		fields: [events.heroImageId],
+		references: [assets.id],
+	}),
 }));
 
 export const users = createTable("user", (d) => ({
@@ -61,6 +73,8 @@ export const users = createTable("user", (d) => ({
 
 export const usersRelations = relations(users, ({ many }) => ({
 	accounts: many(accounts),
+	events: many(events),
+	uploadedAssets: many(assets),
 }));
 
 export const accounts = createTable(
@@ -117,3 +131,39 @@ export const verificationTokens = createTable(
 	}),
 	(t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );
+
+export const assets = createTable("asset", (d) => ({
+	id: defaultUUID(d),
+	// R2 object key (the path/name in the bucket)
+	objectKey: d.varchar({ length: 500 }).notNull(),
+	// Original filename from upload
+	originalName: d.varchar({ length: 255 }).notNull(),
+	// MIME type
+	mimeType: d.varchar({ length: 100 }).notNull(),
+	// File size in bytes
+	size: d.bigint({ mode: "number" }).notNull(),
+	// Image dimensions
+	width: d.integer(),
+	height: d.integer(),
+	// R2 bucket name
+	bucketName: d.varchar({ length: 100 }).notNull(),
+	// Public URL for accessing the asset
+	publicUrl: d.varchar({ length: 1000 }),
+	// Description (optional)
+	description: d.varchar({ length: 1000 }),
+	// Upload metadata
+	uploadedById: d.varchar({ length: 255 }).references(() => users.id),
+	createdAt: d
+		.timestamp({ withTimezone: true })
+		.default(sql`CURRENT_TIMESTAMP`)
+		.notNull(),
+	updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+}));
+
+export const assetsRelations = relations(assets, ({ one, many }) => ({
+	uploadedBy: one(users, {
+		fields: [assets.uploadedById],
+		references: [users.id],
+	}),
+	eventsAsHeroImage: many(events),
+}));
