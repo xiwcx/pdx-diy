@@ -2,6 +2,7 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import type { DefaultSession, NextAuthConfig } from "next-auth";
 import Resend from "next-auth/providers/resend";
 
+import { env } from "~/env";
 import { db } from "~/server/db";
 import {
 	accounts,
@@ -9,7 +10,6 @@ import {
 	users,
 	verificationTokens,
 } from "~/server/db/schema";
-import { env } from "~/env";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`

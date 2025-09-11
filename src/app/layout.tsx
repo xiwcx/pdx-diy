@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
+import { PostHogPageview } from "./_components/posthog-pageview";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
 	title: "PDX DIY",
@@ -21,7 +23,12 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body className={geist.className}>
-				<TRPCReactProvider>{children}</TRPCReactProvider>
+				<Providers>
+					<TRPCReactProvider>
+						<PostHogPageview />
+						{children}
+					</TRPCReactProvider>
+				</Providers>
 			</body>
 		</html>
 	);
