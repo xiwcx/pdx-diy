@@ -2,6 +2,7 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import type { DefaultSession, NextAuthConfig } from "next-auth";
 import Resend from "next-auth/providers/resend";
 
+import { env } from "~/env";
 import { db } from "~/server/db";
 import {
 	accounts,
@@ -9,7 +10,6 @@ import {
 	users,
 	verificationTokens,
 } from "~/server/db/schema";
-import { env } from "~/env";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -40,7 +40,8 @@ declare module "next-auth" {
 export const authConfig = {
 	providers: [
 		Resend({
-			from: "noreply@resend.dev", // Using Resend's test domain
+			apiKey: env.AUTH_RESEND_KEY,
+			from: env.AUTH_RESEND_FROM, // Using Resend's test domain
 			// For development testing, you can only send to your own email
 			// For production, verify a domain at resend.com/domains
 		}),

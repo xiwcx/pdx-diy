@@ -21,9 +21,40 @@ const createContext = cache(async () => {
 	});
 });
 
+/**
+ * Cached query client factory for server-side rendering.
+ *
+ * Creates a new React Query client for each server request
+ * to prevent cross-request data pollution.
+ */
 const getQueryClient = cache(createQueryClient);
+
+/**
+ * Server-side tRPC caller for React Server Components.
+ *
+ * Enables direct API calls from server components without
+ * going through HTTP. Maintains type safety and includes
+ * proper context (auth, headers, etc.).
+ */
 const caller = createCaller(createContext);
 
+/**
+ * tRPC utilities for server-side rendering and hydration.
+ *
+ * - `api`: Server-side tRPC client for React Server Components
+ * - `HydrateClient`: Component to hydrate client-side cache with server data
+ *
+ * @example
+ * ```tsx
+ * // In a server component
+ * const posts = await api.post.getLatest();
+ *
+ * // In your page
+ * <HydrateClient>
+ *   <PostsList />
+ * </HydrateClient>
+ * ```
+ */
 export const { trpc: api, HydrateClient } = createHydrationHelpers<AppRouter>(
 	caller,
 	getQueryClient,
