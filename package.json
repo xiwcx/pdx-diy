@@ -19,7 +19,9 @@
 		"test:ui": "vitest --ui",
 		"test:run": "vitest run",
 		"test:coverage": "vitest run --coverage",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"pre-commit": "biome check --write . && tsc --noEmit",
+		"pre-push": "pnpm test:run"
 	},
 	"dependencies": {
 		"@auth/drizzle-adapter": "^1.7.2",
@@ -51,11 +53,14 @@
 		"@vitest/ui": "^3.2.4",
 		"drizzle-kit": "^0.30.5",
 		"jsdom": "^26.1.0",
+		"simple-pre-commit": "^1.2.1",
 		"typescript": "^5.8.2",
 		"vitest": "^3.2.4"
 	},
 	"ct3aMetadata": {
 		"initVersion": "7.39.3"
 	},
-	"packageManager": "pnpm@10.15.1"
+	"packageManager": "pnpm@10.15.1",
+	"simple-pre-commit": "pnpm pre-commit",
+	"simple-pre-push": "pnpm pre-push"
 }

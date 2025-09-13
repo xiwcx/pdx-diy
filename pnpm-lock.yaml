@@ -90,6 +90,9 @@ importers:
       jsdom:
         specifier: ^26.1.0
         version: 26.1.0
+      simple-pre-commit:
+        specifier: ^1.2.1
+        version: 1.2.1
       typescript:
         specifier: ^5.8.2
         version: 5.9.2
@@ -1640,6 +1643,10 @@ packages:
   siginfo@2.0.0:
     resolution: {integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==}
 
+  simple-pre-commit@1.2.1:
+    resolution: {integrity: sha512-9p8nYsBScz9wqYIKEjXJ5Ihrbl2yrbJsrp5a+gc5MIfOTLvjz3I+VhvDIL3qweNJA6RrvkHcGWELeJ3dAisLEQ==}
+    hasBin: true
+
   simple-swizzle@0.2.2:
     resolution: {integrity: sha512-JA//kQgZtbuY83m+xT+tXJkmJncGMTFT+C+g2h2R9uxkYIrE2yy9sgmcLhCnw57/WSD+Eh3J97FPEDFnbXnDUg==}
 
@@ -3044,6 +3051,8 @@ snapshots:
   shell-quote@1.8.3: {}
 
   siginfo@2.0.0: {}
+
+  simple-pre-commit@1.2.1: {}
 
   simple-swizzle@0.2.2:
     dependencies:
