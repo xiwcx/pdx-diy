@@ -57,28 +57,3 @@ export const env = createEnv({
 	 */
 	emptyStringAsUndefined: true,
 });
-
-if (
-	typeof window === "undefined" &&
-	process.env.NODE_ENV !== "production" &&
-	env.POSTHOG_KEY &&
-	env.NEXT_PUBLIC_POSTHOG_KEY &&
-	env.POSTHOG_KEY !== env.NEXT_PUBLIC_POSTHOG_KEY
-) {
-	// eslint-disable-next-line no-console
-	console.warn(
-		"[env] POSTHOG_KEY and NEXT_PUBLIC_POSTHOG_KEY differ; ensure they point to the same project.",
-	);
-}
-if (
-	typeof window === "undefined" &&
-	process.env.NODE_ENV !== "production" &&
-	env.POSTHOG_HOST &&
-	env.NEXT_PUBLIC_POSTHOG_HOST &&
-	env.POSTHOG_HOST !== env.NEXT_PUBLIC_POSTHOG_HOST
-) {
-	// eslint-disable-next-line no-console
-	console.warn(
-		"[env] POSTHOG_HOST and NEXT_PUBLIC_POSTHOG_HOST differ; ensure they target the same ingestion host.",
-	);
-}

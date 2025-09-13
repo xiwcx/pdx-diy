@@ -70,11 +70,12 @@ PDX-DIY is an open-source Next.js 15 application using TypeScript, tRPC, Drizzle
 - Use proper foreign key relationships and constraints
 - Never concatenate user input into queries
 
-### PostHog Analytics
+ ### PostHog Analytics
 
-- Only send non-sensitive user data to PostHog
-- Use server-side PostHog for sensitive operations
-- Never send PII, auth tokens, or internal IDs to analytics
+ - Only send non-sensitive user data to PostHog
+ - Use server-side PostHog for sensitive operations
+ - Never send PII, auth tokens, or internal IDs to analytics
+ - PostHog project API key (starts with `phc_`) is public by design; do not treat it as a secret. Ensure client and server keys/hosts target the same project/host across environments.
 
 ## Testing Instructions
 

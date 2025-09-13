@@ -39,24 +39,24 @@ vi.mock("posthog-js/react", () => ({
 vi.mock("~/env.js", () => ({
 	env: {
 		NODE_ENV: "development",
-		NEXT_PUBLIC_POSTHOG_KEY: "test-key",
+		NEXT_PUBLIC_POSTHOG_KEY: "test-posthog-key",
 		NEXT_PUBLIC_POSTHOG_HOST: "https://test.posthog.com",
 	},
 }));
 
-// Mock window
-Object.defineProperty(window, "location", {
-	value: { origin: "https://example.com" },
-	writable: true,
-});
-
 describe("PostHog Integration", () => {
 	let mockSearchParams: { toString: ReturnType<typeof vi.fn> };
+	let locationSpy: ReturnType<typeof vi.spyOn>;
 
 	beforeEach(() => {
 		mockSearchParams = {
 			toString: vi.fn().mockReturnValue(""),
 		};
+
+		// Mock window.location with a scoped spy
+		locationSpy = vi.spyOn(window, "location", "get").mockReturnValue({
+			origin: "https://example.com",
+		} as Location);
 
 		vi.mocked(usePathname).mockReturnValue("/");
 		vi.mocked(useSearchParams).mockReturnValue(
@@ -71,6 +71,8 @@ describe("PostHog Integration", () => {
 	afterEach(() => {
 		vi.clearAllMocks();
 		vi.unstubAllEnvs();
+		// Restore window.location spy
+		locationSpy.mockRestore();
 	});
 
 	it("should initialize PostHog and track pageviews in a complete layout", () => {
@@ -88,7 +90,7 @@ describe("PostHog Integration", () => {
 		render(<TestLayout />);
 
 		// PostHog should be initialized
-		expect(posthog.init).toHaveBeenCalledWith("test-key", {
+		expect(posthog.init).toHaveBeenCalledWith("test-posthog-key", {
 			api_host: "https://test.posthog.com",
 			capture_pageview: false,
 			capture_pageleave: false,
@@ -293,6 +295,21 @@ describe("PostHog Integration", () => {
 		// PostHog should still be tracking throughout state changes
 		expect(posthog.capture).toHaveBeenCalledWith("$pageview", {
 			$current_url: "https://example.com/",
+		});
+	});
+
+	it("should drop sensitive query parameters from pageview URLs", () => {
+		vi.mocked(usePathname).mockReturnValue("/callback");
+		mockSearchParams.toString.mockReturnValue(
+			"code=abc123&token=secret&ref=ok",
+		);
+		render(
+			<Providers>
+				<PostHogPageview />
+			</Providers>,
+		);
+		expect(posthog.capture).toHaveBeenCalledWith("$pageview", {
+			$current_url: "https://example.com/callback?ref=ok",
 		});
 	});
 });

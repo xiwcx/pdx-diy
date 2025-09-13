@@ -20,7 +20,13 @@ import { PostHog } from "posthog-node";
 import { env } from "~/env";
 
 // Create a singleton PostHog instance for server-side use
-let posthog: PostHog | null = null;
+declare global {
+	// eslint-disable-next-line no-var
+	var __posthogClient: PostHog | undefined;
+}
+
+// Create a singleton PostHog instance for server-side use
+let posthog: PostHog | null = globalThis.__posthogClient ?? null;
 
 /**
  * Gets or creates a singleton PostHog client instance for server-side use.
@@ -292,5 +298,6 @@ export async function shutdownPostHog() {
 	if (posthog) {
 		await posthog.shutdown();
 		posthog = null;
+		globalThis.__posthogClient = undefined;
 	}
 }

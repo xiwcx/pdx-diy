@@ -95,8 +95,8 @@ function MyComponent() {
 - ✅ User identification
 - ✅ Automatic pageview tracking
 - ✅ Feature flags
-- ✅ Session replay (client-side)
-- ✅ Error tracking (client-side)
+- ✅ Session replay (optional; enable via posthog-js with session recording APIs)
+- ✅ Error tracking (optional; integrate with your error boundary or PostHog capture)
 
 ## API Routes with Tracking
 

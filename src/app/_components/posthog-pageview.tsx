@@ -9,8 +9,23 @@ export function PostHogPageview() {
 	const searchParams = useSearchParams();
 	const posthog = usePostHog();
 
-	// Serialize search params once outside the effect
-	const search = searchParams.toString();
+	// Serialize search params once outside the effect, filtering sensitive parameters
+	const search = (() => {
+		const params = new URLSearchParams(searchParams.toString());
+		// Remove sensitive parameters that could contain auth tokens or codes
+		const sensitiveParams = [
+			"code",
+			"token",
+			"access_token",
+			"refresh_token",
+			"auth_token",
+			"api_key",
+		];
+		for (const param of sensitiveParams) {
+			params.delete(param);
+		}
+		return params.toString();
+	})();
 
 	useEffect(() => {
 		// Only run on client side

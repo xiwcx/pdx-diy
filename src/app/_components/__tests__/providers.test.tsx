@@ -73,20 +73,39 @@ describe("PostHog Providers", () => {
 		// Verify children are rendered correctly
 		expect(getByTestId("test-child")).toBeTruthy();
 
-		// Verify PostHogProvider was called
-		expect(PostHogProvider).toHaveBeenCalled();
+		// Verify PostHogProvider was called with correct props
+		expect(PostHogProvider).toHaveBeenCalledWith(
+			expect.objectContaining({ client: posthog, children: expect.anything() }),
+			undefined, // React components receive undefined as second parameter in this test setup
+		);
 	});
 
-	it("should handle missing environment variables gracefully", () => {
-		// This test ensures the component doesn't crash with missing env vars
+	it("should handle missing environment variables gracefully", async () => {
+		// Clear module cache to ensure fresh imports
+		vi.resetModules();
+
+		// Mock environment variables with empty/undefined values
+		vi.doMock("~/env.js", () => ({
+			env: {
+				NODE_ENV: "development",
+				NEXT_PUBLIC_POSTHOG_KEY: undefined,
+				NEXT_PUBLIC_POSTHOG_HOST: undefined,
+			},
+		}));
+
+		// Re-import the Providers component with the new mocked env
+		const { Providers: ProvidersWithMissingEnv } = await import(
+			"../../providers"
+		);
+
 		const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-		// Don't throw when rendering
+		// Don't throw when rendering with missing env vars
 		expect(() => {
 			render(
-				<Providers>
+				<ProvidersWithMissingEnv>
 					<div>Test child</div>
-				</Providers>,
+				</ProvidersWithMissingEnv>,
 			);
 		}).not.toThrow();
 
@@ -94,6 +113,10 @@ describe("PostHog Providers", () => {
 	});
 
 	it("should handle PostHog initialization errors gracefully", () => {
+		// Suppress stderr to prevent error logs from appearing in test output
+		const stderrWrite = process.stderr.write;
+		process.stderr.write = vi.fn() as typeof process.stderr.write;
+
 		const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
 		// Clear previous calls to avoid test isolation issues
@@ -117,12 +140,23 @@ describe("PostHog Providers", () => {
 		// Component should still render its children
 		expect(result?.getByTestId("test-child")).toBeTruthy();
 
+		// Verify console.error was called (showing error was handled)
+		expect(consoleSpy).toHaveBeenCalledWith(
+			"Failed to initialize PostHog:",
+			expect.any(Error),
+		);
+
+		// Restore stderr and console
+		process.stderr.write = stderrWrite;
 		consoleSpy.mockRestore();
 	});
 
 	it("should only initialize PostHog once for multiple renders", () => {
 		// Clear previous mocks to start fresh
 		vi.clearAllMocks();
+
+		// Reset posthog.init to not throw (in case previous test left it throwing)
+		vi.mocked(posthog.init).mockImplementation(() => posthog);
 
 		const { rerender } = render(
 			<Providers>
@@ -138,5 +172,16 @@ describe("PostHog Providers", () => {
 
 		// PostHog init should only be called once due to useEffect dependencies
 		expect(posthog.init).toHaveBeenCalledTimes(1);
+	});
+
+	it("should not initialize PostHog in test environment", async () => {
+		vi.stubEnv("NODE_ENV", "test");
+		render(
+			<Providers>
+				<div>Child</div>
+			</Providers>,
+		);
+		expect(posthog.init).not.toHaveBeenCalled();
+		vi.unstubAllEnvs();
 	});
 });

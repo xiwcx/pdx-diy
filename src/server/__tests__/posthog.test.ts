@@ -68,6 +68,16 @@ describe("PostHog Utilities", () => {
 	});
 
 	describe("getPostHogClient", () => {
+		it("should reuse the same instance across module reloads (global cache)", async () => {
+			const client1 = posthogModule.getPostHogClient();
+			// Simulate HMR/serverless reload
+			vi.resetModules();
+			const reImported = await import("../posthog");
+			const client2 = reImported.getPostHogClient();
+			expect(client2).toBe(client1);
+			expect(PostHog).toHaveBeenCalledTimes(1);
+		});
+
 		it("should create a new PostHog instance with correct configuration", () => {
 			const client = posthogModule.getPostHogClient();
 
