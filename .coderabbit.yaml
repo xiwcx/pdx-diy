@@ -75,14 +75,14 @@ reviews:
     # Include source directories
     - "src/**"
     - "drizzle/**"
-    - "*.ts"
-    - "*.tsx"
-    - "*.js"
-    - "*.jsx"
-    - "*.json"
-    - "*.md"
-    - "*.yaml"
-    - "*.yml"
+    - "**/*.ts"
+    - "**/*.tsx"
+    - "**/*.js"
+    - "**/*.jsx"
+    - "**/*.json"
+    - "**/*.md"
+    - "**/*.yaml"
+    - "**/*.yml"
     
     # Exclude build artifacts and dependencies
     - "!node_modules/**"
@@ -90,11 +90,13 @@ reviews:
     - "!dist/**"
     - "!build/**"
     - "!coverage/**"
-    - "!*.min.js"
-    - "!*.min.css"
+    - "!**/*.min.js"
+    - "!**/*.min.css"
     - "!pnpm-lock.yaml"
+    - "!package-lock.json"
+    - "!yarn.lock"
+    - "!bun.lockb"
     - "!tsconfig.tsbuildinfo"
-
   # =============================================================================
   # PATH-SPECIFIC INSTRUCTIONS - Security and quality focus
   # =============================================================================
