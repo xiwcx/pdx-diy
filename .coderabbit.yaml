@@ -135,6 +135,7 @@ reviews:
     # Security vulnerability scanning
     semgrep:
       enabled: true
+      config_file: "ci/semgrep.yml"
       
     # Secret detection - critical for this project
     gitleaks:
@@ -147,11 +148,11 @@ reviews:
     # YAML linting for configuration files
     yamllint:
       enabled: true
+      # Add .yamllint at repo root for consistent checks
       
     # Dockerfile security (if Docker is added later)
     hadolint:
       enabled: true
-
   # =============================================================================
   # AUTO REVIEW SETTINGS
   # =============================================================================
