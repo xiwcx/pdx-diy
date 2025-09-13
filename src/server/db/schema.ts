@@ -8,8 +8,28 @@ import type { AdapterAccount } from "next-auth/adapters";
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
+/**
+ * Creates a table with the PDX-DIY prefix for multi-project schema support.
+ *
+ * This helper function automatically prefixes table names with "pdx-diy_"
+ * to support multi-project database schemas as recommended by Drizzle ORM.
+ *
+ * @param name - The base name of the table (without prefix)
+ * @returns A table creator function with the PDX-DIY prefix
+ *
+ * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
+ */
 export const createTable = pgTableCreator((name) => `pdx-diy_${name}`);
 
+/**
+ * Posts table schema for storing user-created posts.
+ *
+ * Each post has an auto-incrementing ID, a name, creator reference,
+ * and timestamps for creation and updates. Includes indexes for
+ * optimal query performance.
+ *
+ * @table pdx-diy_post
+ */
 export const posts = createTable(
 	"post",
 	(d) => ({
@@ -31,6 +51,14 @@ export const posts = createTable(
 	],
 );
 
+/**
+ * Users table schema for storing user account information.
+ *
+ * Supports NextAuth.js authentication with email-based identification.
+ * Includes fields for user profile information and email verification.
+ *
+ * @table pdx-diy_user
+ */
 export const users = createTable("user", (d) => ({
 	id: d
 		.varchar({ length: 255 })
@@ -48,10 +76,25 @@ export const users = createTable("user", (d) => ({
 	image: d.varchar({ length: 255 }),
 }));
 
+/**
+ * Defines the relationship between users and their authentication accounts.
+ *
+ * A user can have multiple authentication accounts (e.g., different providers).
+ * This relation enables querying user accounts through Drizzle's relational API.
+ */
 export const usersRelations = relations(users, ({ many }) => ({
 	accounts: many(accounts),
 }));
 
+/**
+ * Accounts table schema for NextAuth.js authentication providers.
+ *
+ * Stores OAuth account information from external providers like Google,
+ * GitHub, or email-based authentication. Each account is linked to a user
+ * and contains provider-specific tokens and metadata.
+ *
+ * @table pdx-diy_account
+ */
 export const accounts = createTable(
 	"account",
 	(d) => ({
@@ -76,10 +119,24 @@ export const accounts = createTable(
 	],
 );
 
+/**
+ * Defines the relationship between accounts and their associated user.
+ *
+ * Each account belongs to exactly one user. This relation enables
+ * querying user information from account records.
+ */
 export const accountsRelations = relations(accounts, ({ one }) => ({
 	user: one(users, { fields: [accounts.userId], references: [users.id] }),
 }));
 
+/**
+ * Sessions table schema for NextAuth.js session management.
+ *
+ * Stores active user sessions with tokens and expiration times.
+ * Used to maintain user authentication state across requests.
+ *
+ * @table pdx-diy_session
+ */
 export const sessions = createTable(
 	"session",
 	(d) => ({
@@ -93,10 +150,24 @@ export const sessions = createTable(
 	(t) => [index("t_user_id_idx").on(t.userId)],
 );
 
+/**
+ * Defines the relationship between sessions and their associated user.
+ *
+ * Each session belongs to exactly one user. This relation enables
+ * querying user information from session records.
+ */
 export const sessionsRelations = relations(sessions, ({ one }) => ({
 	user: one(users, { fields: [sessions.userId], references: [users.id] }),
 }));
 
+/**
+ * Verification tokens table schema for NextAuth.js email verification.
+ *
+ * Stores temporary tokens used for email verification and password resets.
+ * Tokens expire after a set time for security purposes.
+ *
+ * @table pdx-diy_verification_token
+ */
 export const verificationTokens = createTable(
 	"verification_token",
 	(d) => ({
