@@ -114,15 +114,14 @@ reviews:
     - path: "src/server/db/**"
       instructions: "DATABASE SECURITY: Verify schema changes maintain data integrity, proper foreign key relationships, appropriate indexes, and follow naming conventions (pdx-diy_tableName). Check for potential data exposure."
       
-    - path: "src/env.js"
-      instructions: "ENVIRONMENT SECURITY: Verify all environment variables are properly validated, no secrets are exposed to client (NEXT_PUBLIC_ prefix), and all server-side secrets are properly protected."
+    - path: "src/env.{ts,js}"
+      instructions: "ENVIRONMENT SECURITY: Verify all environment variables are validated (e.g., Zod), no secrets are exposed to client (only NEXT_PUBLIC_*), and server-side secrets are protected."
       
     - path: "drizzle/**"
       instructions: "DATABASE MIGRATION REVIEW: Verify migrations are safe, reversible where possible, maintain data integrity, and follow proper indexing strategies. Check for breaking changes."
       
     - path: "**/*.test.*"
       instructions: "Test Review: Ensure tests cover security scenarios, authentication flows, and edge cases. Verify no hardcoded secrets in test files."
-
   # =============================================================================
   # SECURITY TOOLS - Critical monitoring for PDX-DIY
   # =============================================================================
