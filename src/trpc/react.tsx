@@ -6,6 +6,7 @@ import { createTRPCReact } from "@trpc/react-query";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { useState } from "react";
 import SuperJSON from "superjson";
+import { env } from "~/env.js";
 
 import type { AppRouter } from "~/server/api/root";
 import { createQueryClient } from "./query-client";
@@ -46,7 +47,7 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
 			links: [
 				loggerLink({
 					enabled: (op) =>
-						process.env.NODE_ENV === "development" ||
+						env.NODE_ENV === "development" ||
 						(op.direction === "down" && op.result instanceof Error),
 				}),
 				httpBatchStreamLink({

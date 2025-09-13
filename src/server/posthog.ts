@@ -17,7 +17,7 @@
  */
 
 import { PostHog } from "posthog-node";
-import { env } from "~/env.js";
+import { env } from "~/env";
 
 // Create a singleton PostHog instance for server-side use
 let posthog: PostHog | null = null;
@@ -41,6 +41,7 @@ export function getPostHogClient(): PostHog {
 		posthog = new PostHog(env.POSTHOG_KEY, {
 			host: env.POSTHOG_HOST,
 		});
+		globalThis.__posthogClient = posthog;
 	}
 	return posthog;
 }
@@ -76,15 +77,29 @@ export async function captureEvent(
 	event: string,
 	properties?: Record<string, unknown>,
 ) {
+	// Validate inputs
+	const trimmedDistinctId = distinctId?.trim();
+	const trimmedEvent = event?.trim();
+
+	if (!trimmedDistinctId) {
+		console.error(
+			"PostHog captureEvent: distinctId must be a non-empty string",
+		);
+		return;
+	}
+
+	if (!trimmedEvent) {
+		console.error("PostHog captureEvent: event must be a non-empty string");
+		return;
+	}
+
 	try {
 		const client = getPostHogClient();
 		await client.capture({
-			distinctId,
-			event,
+			distinctId: trimmedDistinctId,
+			event: trimmedEvent,
 			properties: {
-				...properties,
-				$lib: "posthog-node",
-				$lib_version: "5.8.2",
+				...(properties ?? {}),
 			},
 		});
 	} catch (error) {
@@ -127,10 +142,31 @@ export async function identifyUser(
 	distinctId: string,
 	properties?: Record<string, unknown>,
 ) {
+	// Validate distinctId
+	const trimmedDistinctId = distinctId?.trim();
+	if (!trimmedDistinctId) {
+		console.warn("PostHog identifyUser: distinctId must be a non-empty string");
+		return;
+	}
+
+	// Validate properties if provided
+	if (properties !== undefined) {
+		if (
+			typeof properties !== "object" ||
+			properties === null ||
+			Array.isArray(properties)
+		) {
+			console.warn(
+				"PostHog identifyUser: properties must be a plain object (Record<string, unknown>)",
+			);
+			return;
+		}
+	}
+
 	try {
 		const client = getPostHogClient();
 		await client.identify({
-			distinctId,
+			distinctId: trimmedDistinctId,
 			properties,
 		});
 	} catch (error) {
@@ -143,18 +179,18 @@ export async function identifyUser(
  *
  * This function fetches the current state of all feature flags for a given user,
  * allowing for server-side feature flag evaluation and conditional logic.
- * Returns an empty object if there's an error to maintain app stability.
+ * Returns null if PostHog returns null or if there's an error.
  *
  * @param {string} distinctId - Unique identifier for the user
  * @param {Record<string, string>} [groups] - Optional group identifiers for group-based flags
  *
- * @returns {Promise<Record<string, boolean | string>>} Object containing flag keys and their values
+ * @returns {Promise<Record<string, boolean | string> | null>} Object containing flag keys and their values, or null if unavailable
  *
  * @example
  * ```typescript
  * // Get all flags for a user
  * const flags = await getFeatureFlags('user123');
- * if (flags.new_dashboard_enabled) {
+ * if (flags && flags.new_dashboard_enabled) {
  *   // Show new dashboard
  * }
  *
@@ -163,18 +199,25 @@ export async function identifyUser(
  *   company: 'acme-corp',
  *   plan: 'enterprise'
  * });
+ *
+ * // Always check for null before using flags
+ * if (flags) {
+ *   const isFeatureEnabled = flags.some_feature || false;
+ * }
  * ```
  */
 export async function getFeatureFlags(
 	distinctId: string,
 	groups?: Record<string, string>,
-) {
+): Promise<Record<string, boolean | string> | null> {
 	try {
 		const client = getPostHogClient();
-		return await client.getAllFlags(distinctId, groups);
+		const flags = await client.getAllFlags(distinctId, groups);
+		// Propagate null if PostHog returns null
+		return flags;
 	} catch (error) {
 		console.error("Failed to get feature flags from PostHog:", error);
-		return {};
+		return null;
 	}
 }
 

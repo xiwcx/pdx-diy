@@ -90,14 +90,13 @@ describe("PostHog Utilities", () => {
 		it("should capture an event with basic parameters", async () => {
 			await posthogModule.captureEvent("user123", "test_event");
 
-			expect(mockPostHogInstance.capture).toHaveBeenCalledWith({
-				distinctId: "user123",
-				event: "test_event",
-				properties: {
-					$lib: "posthog-node",
-					$lib_version: "5.8.2",
-				},
-			});
+			expect(mockPostHogInstance.capture).toHaveBeenCalledWith(
+				expect.objectContaining({
+					distinctId: "user123",
+					event: "test_event",
+					properties: {},
+				}),
+			);
 		});
 
 		it("should capture an event with custom properties", async () => {
@@ -109,17 +108,17 @@ describe("PostHog Utilities", () => {
 
 			await posthogModule.captureEvent("user123", "button_clicked", properties);
 
-			expect(mockPostHogInstance.capture).toHaveBeenCalledWith({
-				distinctId: "user123",
-				event: "button_clicked",
-				properties: {
-					button_name: "signup",
-					page: "home",
-					user_type: "premium",
-					$lib: "posthog-node",
-					$lib_version: "5.8.2",
-				},
-			});
+			expect(mockPostHogInstance.capture).toHaveBeenCalledWith(
+				expect.objectContaining({
+					distinctId: "user123",
+					event: "button_clicked",
+					properties: {
+						button_name: "signup",
+						page: "home",
+						user_type: "premium",
+					},
+				}),
+			);
 		});
 
 		it("should handle errors gracefully and log them", async () => {
@@ -226,12 +225,12 @@ describe("PostHog Utilities", () => {
 			expect(flags).toEqual(mockFlags);
 		});
 
-		it("should return empty object on error", async () => {
+		it("should return null on error", async () => {
 			mockPostHogInstance.getAllFlags.mockRejectedValue(new Error("API error"));
 
 			const flags = await posthogModule.getFeatureFlags("user123");
 
-			expect(flags).toEqual({});
+			expect(flags).toBeNull();
 			expect(consoleSpy).toHaveBeenCalledWith(
 				"Failed to get feature flags from PostHog:",
 				expect.any(Error),
@@ -406,15 +405,15 @@ describe("PostHog Utilities", () => {
 				"user123",
 				undefined,
 			);
-			expect(mockPostHogInstance.capture).toHaveBeenCalledWith({
-				distinctId: "user123",
-				event: "beta_feature_accessed",
-				properties: {
-					feature_name: "new_dashboard",
-					$lib: "posthog-node",
-					$lib_version: "5.8.2",
-				},
-			});
+			expect(mockPostHogInstance.capture).toHaveBeenCalledWith(
+				expect.objectContaining({
+					distinctId: "user123",
+					event: "beta_feature_accessed",
+					properties: {
+						feature_name: "new_dashboard",
+					},
+				}),
+			);
 		});
 
 		it("should handle multiple concurrent operations", async () => {
@@ -436,27 +435,38 @@ describe("PostHog Utilities", () => {
 
 	describe("Edge cases and input validation", () => {
 		it("should handle empty strings gracefully", async () => {
+			const captureErrorSpy = vi
+				.spyOn(console, "error")
+				.mockImplementation(() => {});
+			const identifyWarnSpy = vi
+				.spyOn(console, "warn")
+				.mockImplementation(() => {});
+
 			await posthogModule.captureEvent("", "");
 			await posthogModule.identifyUser("");
 			await posthogModule.isFeatureEnabled("", "");
 
-			expect(mockPostHogInstance.capture).toHaveBeenCalledWith({
-				distinctId: "",
-				event: "",
-				properties: {
-					$lib: "posthog-node",
-					$lib_version: "5.8.2",
-				},
-			});
-			expect(mockPostHogInstance.identify).toHaveBeenCalledWith({
-				distinctId: "",
-				properties: undefined,
-			});
+			// captureEvent with empty strings should not call PostHog but should log errors
+			expect(mockPostHogInstance.capture).not.toHaveBeenCalled();
+			expect(captureErrorSpy).toHaveBeenCalledWith(
+				"PostHog captureEvent: distinctId must be a non-empty string",
+			);
+
+			// identifyUser with empty string should not call PostHog but should log warning
+			expect(mockPostHogInstance.identify).not.toHaveBeenCalled();
+			expect(identifyWarnSpy).toHaveBeenCalledWith(
+				"PostHog identifyUser: distinctId must be a non-empty string",
+			);
+
+			// isFeatureEnabled should still call PostHog even with empty strings
 			expect(mockPostHogInstance.isFeatureEnabled).toHaveBeenCalledWith(
 				"",
 				"",
 				undefined,
 			);
+
+			captureErrorSpy.mockRestore();
+			identifyWarnSpy.mockRestore();
 		});
 
 		it("should handle special characters in identifiers", async () => {
@@ -468,14 +478,13 @@ describe("PostHog Utilities", () => {
 			await posthogModule.identifyUser(specialId);
 			await posthogModule.isFeatureEnabled(specialId, specialFlag);
 
-			expect(mockPostHogInstance.capture).toHaveBeenCalledWith({
-				distinctId: specialId,
-				event: specialEvent,
-				properties: {
-					$lib: "posthog-node",
-					$lib_version: "5.8.2",
-				},
-			});
+			expect(mockPostHogInstance.capture).toHaveBeenCalledWith(
+				expect.objectContaining({
+					distinctId: specialId,
+					event: specialEvent,
+					properties: {},
+				}),
+			);
 			expect(mockPostHogInstance.identify).toHaveBeenCalledWith({
 				distinctId: specialId,
 				properties: undefined,
@@ -512,15 +521,15 @@ describe("PostHog Utilities", () => {
 			);
 			await posthogModule.identifyUser("user123", complexProperties);
 
-			expect(mockPostHogInstance.capture).toHaveBeenCalledWith({
-				distinctId: "user123",
-				event: "complex_event",
-				properties: {
-					...complexProperties,
-					$lib: "posthog-node",
-					$lib_version: "5.8.2",
-				},
-			});
+			expect(mockPostHogInstance.capture).toHaveBeenCalledWith(
+				expect.objectContaining({
+					distinctId: "user123",
+					event: "complex_event",
+					properties: {
+						...complexProperties,
+					},
+				}),
+			);
 			expect(mockPostHogInstance.identify).toHaveBeenCalledWith({
 				distinctId: "user123",
 				properties: complexProperties,

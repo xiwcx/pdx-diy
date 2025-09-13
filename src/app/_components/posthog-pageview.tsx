@@ -9,17 +9,23 @@ export function PostHogPageview() {
 	const searchParams = useSearchParams();
 	const posthog = usePostHog();
 
+	// Serialize search params once outside the effect
+	const search = searchParams.toString();
+
 	useEffect(() => {
+		// Only run on client side
+		if (typeof window === "undefined") return;
+
 		if (pathname && posthog) {
-			let url = `${window.origin}${pathname}`;
-			if (searchParams.toString()) {
-				url = `${url}?${searchParams.toString()}`;
+			let url = `${window.location.origin}${pathname}`;
+			if (search) {
+				url = `${url}?${search}`;
 			}
 			posthog.capture("$pageview", {
 				$current_url: url,
 			});
 		}
-	}, [pathname, searchParams, posthog]);
+	}, [pathname, search, posthog]);
 
 	return null;
 }

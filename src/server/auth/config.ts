@@ -40,7 +40,8 @@ declare module "next-auth" {
 export const authConfig = {
 	providers: [
 		Resend({
-			from: "noreply@resend.dev", // Using Resend's test domain
+			apiKey: env.AUTH_RESEND_KEY,
+			from: env.AUTH_RESEND_FROM, // Using Resend's test domain
 			// For development testing, you can only send to your own email
 			// For production, verify a domain at resend.com/domains
 		}),

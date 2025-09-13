@@ -26,19 +26,23 @@ You can find your project API key in your PostHog project settings.
 ## Files Added/Modified
 
 ### Server-side PostHog (`src/server/posthog.ts`)
+
 - Singleton PostHog client for server-side use
 - Helper functions for capturing events, identifying users, and checking feature flags
 - Error handling to prevent PostHog failures from breaking your app
 
 ### Client-side Components
+
 - `src/app/providers.tsx`: Main providers file for client-side providers (PostHog, etc.)
 - `src/app/_components/posthog-pageview.tsx`: Automatic pageview tracking component
 
 ### Layout Integration (`src/app/layout.tsx`)
+
 - Wraps the app with the main Providers component
 - Includes pageview tracking component
 
 ### Environment Configuration (`src/env.js`)
+
 - Added PostHog environment variables to the validation schema
 - Ensures proper type checking for PostHog configuration
 

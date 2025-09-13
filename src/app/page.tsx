@@ -16,7 +16,12 @@ export default async function Home() {
 						<p>Welcome to PDX DIY</p>
 
 						<div>
-							<p>{session && <span>Logged in as {session.user?.name}</span>}</p>
+							{session ? (
+								<p>
+									<span>Logged in as {session.user?.name}</span>
+								</p>
+							) : null}
+
 							<Link href={session ? "/api/auth/signout" : "/api/auth/signin"}>
 								{session ? "Sign out" : "Sign in"}
 							</Link>

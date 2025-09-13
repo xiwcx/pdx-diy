@@ -12,6 +12,7 @@ export const env = createEnv({
 				? z.string()
 				: z.string().optional(),
 		AUTH_RESEND_KEY: z.string(),
+		AUTH_RESEND_FROM: z.string(),
 		DATABASE_URL: z.string().url(),
 		NODE_ENV: z
 			.enum(["development", "test", "production"])
@@ -37,6 +38,7 @@ export const env = createEnv({
 	runtimeEnv: {
 		AUTH_SECRET: process.env.AUTH_SECRET,
 		AUTH_RESEND_KEY: process.env.AUTH_RESEND_KEY,
+		AUTH_RESEND_FROM: process.env.AUTH_RESEND_FROM,
 		DATABASE_URL: process.env.DATABASE_URL,
 		NODE_ENV: process.env.NODE_ENV,
 		POSTHOG_KEY: process.env.POSTHOG_KEY,
@@ -55,3 +57,28 @@ export const env = createEnv({
 	 */
 	emptyStringAsUndefined: true,
 });
+
+if (
+	typeof window === "undefined" &&
+	process.env.NODE_ENV !== "production" &&
+	env.POSTHOG_KEY &&
+	env.NEXT_PUBLIC_POSTHOG_KEY &&
+	env.POSTHOG_KEY !== env.NEXT_PUBLIC_POSTHOG_KEY
+) {
+	// eslint-disable-next-line no-console
+	console.warn(
+		"[env] POSTHOG_KEY and NEXT_PUBLIC_POSTHOG_KEY differ; ensure they point to the same project.",
+	);
+}
+if (
+	typeof window === "undefined" &&
+	process.env.NODE_ENV !== "production" &&
+	env.POSTHOG_HOST &&
+	env.NEXT_PUBLIC_POSTHOG_HOST &&
+	env.POSTHOG_HOST !== env.NEXT_PUBLIC_POSTHOG_HOST
+) {
+	// eslint-disable-next-line no-console
+	console.warn(
+		"[env] POSTHOG_HOST and NEXT_PUBLIC_POSTHOG_HOST differ; ensure they target the same ingestion host.",
+	);
+}

@@ -25,9 +25,11 @@ vi.mock("posthog-js/react", () => ({
 	usePostHog: vi.fn(),
 }));
 
-// Mock window.origin
-Object.defineProperty(window, "origin", {
-	value: "https://example.com",
+// Mock window.location.origin
+Object.defineProperty(window, "location", {
+	value: {
+		origin: "https://example.com",
+	},
 	writable: true,
 });
 
@@ -127,6 +129,11 @@ describe("PostHogPageview", () => {
 		expect(mockPostHog.capture).toHaveBeenCalledWith("$pageview", {
 			$current_url: "https://example.com/contact",
 		});
+
+		expect(mockPostHog.capture).toHaveBeenCalledTimes(2);
+
+		// Rerender without changing pathname or search params should not produce extra captures
+		rerender(<PostHogPageview />);
 
 		expect(mockPostHog.capture).toHaveBeenCalledTimes(2);
 	});
