@@ -5,6 +5,16 @@ import { PostHogProvider } from "posthog-js/react";
 // biome-ignore lint/style/useImportType: React needed at runtime for JSX transform
 import React, { useEffect } from "react";
 
+/**
+ * Internal wrapper component that initializes PostHog and provides the context.
+ *
+ * Handles PostHog initialization with proper environment variable checks
+ * and error handling. Only initializes in browser environment and
+ * skips initialization during testing.
+ *
+ * @param children - Child components that need PostHog access
+ * @returns PostHog provider with initialized client
+ */
 function PostHogProviderWrapper({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
 		if (typeof window !== "undefined" && process.env.NODE_ENV !== "test") {
@@ -28,6 +38,23 @@ function PostHogProviderWrapper({ children }: { children: React.ReactNode }) {
 	return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
 }
 
+/**
+ * Main providers component that wraps the application with necessary providers.
+ *
+ * Currently includes PostHog analytics provider. This is where additional
+ * global providers (like theme, auth context, etc.) would be added in the future.
+ *
+ * @param children - The application content to wrap with providers
+ * @returns The wrapped application with all necessary context providers
+ *
+ * @example
+ * ```tsx
+ * // In your root layout
+ * <Providers>
+ *   <App />
+ * </Providers>
+ * ```
+ */
 export function Providers({ children }: { children: React.ReactNode }) {
 	return <PostHogProviderWrapper>{children}</PostHogProviderWrapper>;
 }

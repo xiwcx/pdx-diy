@@ -4,6 +4,26 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { usePostHog } from "posthog-js/react";
 import { useEffect } from "react";
 
+/**
+ * PostHog pageview tracking component for client-side analytics.
+ *
+ * Automatically captures pageview events when the route changes,
+ * while filtering out sensitive URL parameters like auth tokens.
+ * Must be rendered within a PostHog provider context.
+ *
+ * @returns null (component has no visual output)
+ *
+ * @example
+ * ```tsx
+ * // Include in your layout or root component
+ * <PostHogProvider client={posthog}>
+ *   <PostHogPageview />
+ *   <App />
+ * </PostHogProvider>
+ * ```
+ *
+ * @security Automatically removes sensitive parameters to prevent token leakage
+ */
 export function PostHogPageview() {
 	const pathname = usePathname();
 	const searchParams = useSearchParams();

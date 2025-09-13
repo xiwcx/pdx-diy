@@ -10,7 +10,20 @@ import SuperJSON from "superjson";
 import type { AppRouter } from "~/server/api/root";
 import { createQueryClient } from "./query-client";
 
+/**
+ * Singleton query client for browser-side caching.
+ * Prevents unnecessary query client recreation in the browser.
+ */
 let clientQueryClientSingleton: QueryClient | undefined = undefined;
+
+/**
+ * Gets or creates a React Query client with SSR-optimized behavior.
+ *
+ * Server-side: Always creates a new client to prevent cross-request pollution.
+ * Client-side: Uses singleton pattern to maintain cache across navigations.
+ *
+ * @returns A React Query client instance
+ */
 const getQueryClient = () => {
 	if (typeof window === "undefined") {
 		// Server: always make a new query client
@@ -22,6 +35,19 @@ const getQueryClient = () => {
 	return clientQueryClientSingleton;
 };
 
+/**
+ * tRPC React client for making type-safe API calls from React components.
+ *
+ * Provides hooks for queries, mutations, and subscriptions with full
+ * TypeScript integration and React Query caching.
+ *
+ * @example
+ * ```typescript
+ * // In a React component
+ * const { data: posts } = api.post.getLatest.useQuery();
+ * const createPost = api.post.create.useMutation();
+ * ```
+ */
 export const api = createTRPCReact<AppRouter>();
 
 /**
@@ -38,6 +64,22 @@ export type RouterInputs = inferRouterInputs<AppRouter>;
  */
 export type RouterOutputs = inferRouterOutputs<AppRouter>;
 
+/**
+ * tRPC React provider component that sets up the tRPC client and React Query.
+ *
+ * Configures the tRPC client with proper error handling, logging, and
+ * SuperJSON transformation. Must wrap the application to enable tRPC hooks.
+ *
+ * @param props - Component props
+ * @param props.children - Child components that will have access to tRPC
+ *
+ * @example
+ * ```tsx
+ * <TRPCReactProvider>
+ *   <App />
+ * </TRPCReactProvider>
+ * ```
+ */
 export function TRPCReactProvider(props: { children: React.ReactNode }) {
 	const queryClient = getQueryClient();
 
@@ -71,6 +113,15 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
 	);
 }
 
+/**
+ * Determines the base URL for tRPC API calls based on the environment.
+ *
+ * Client-side: Uses the current window location origin
+ * Vercel production: Uses the VERCEL_URL environment variable
+ * Development: Falls back to localhost with configurable port
+ *
+ * @returns The base URL for API requests
+ */
 function getBaseUrl() {
 	if (typeof window !== "undefined") return window.location.origin;
 	if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
