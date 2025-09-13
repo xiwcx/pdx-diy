@@ -1,0 +1,242 @@
+---
+# CodeRabbit Configuration for PDX-DIY
+# Security-first, quality-focused configuration for Next.js 15 + TypeScript
+# Complete reference: https://docs.coderabbit.ai/reference/configuration
+
+# =============================================================================
+# GLOBAL SETTINGS
+# =============================================================================
+
+language: "en-US"
+tone_instructions: >
+  Use a professional, security-focused tone. Be thorough and assertive about
+  code quality, security vulnerabilities, and adherence to project standards.
+  Prioritize security concerns above all else.
+early_access: true
+enable_free_tier: true
+
+# =============================================================================
+# REVIEWS
+# =============================================================================
+
+reviews:
+  # Assertive profile for detailed, thorough feedback
+  profile: "assertive"
+  
+  # Workflow settings
+  request_changes_workflow: true
+  high_level_summary: true
+  high_level_summary_placeholder: "@coderabbitai summary"
+  high_level_summary_in_walkthrough: true
+  auto_title_placeholder: "@coderabbitai"
+  auto_title_instructions: >
+    Generate concise, descriptive titles following conventional commit format.
+    Focus on the primary change type and scope.
+  
+  # Status and tracking
+  review_status: true
+  commit_status: true
+  fail_commit_status: true
+  
+  # Enhanced walkthrough features
+  collapse_walkthrough: false
+  changed_files_summary: true
+  sequence_diagrams: true
+  estimate_code_review_effort: true
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+  
+  # Team workflow automation
+  suggested_labels: true
+  auto_apply_labels: true
+  suggested_reviewers: true
+  auto_assign_reviewers: true
+  poem: false
+  
+  # Labeling instructions for PDX-DIY project
+  labeling_instructions:
+    - label: "security"
+      instructions: >
+        For changes affecting authentication, authorization, data validation,
+        or potential security vulnerabilities
+    - label: "database"
+      instructions: >
+        For Drizzle schema changes, migrations, or database-related
+        modifications
+    - label: "api"
+      instructions: "For tRPC procedure changes or API modifications"
+    - label: "auth"
+      instructions: "For NextAuth.js or authentication flow changes"
+    - label: "frontend"
+      instructions: >
+        For Next.js app router, React components, or UI changes
+    - label: "config"
+      instructions: >
+        For configuration file changes (env, Next.js config, etc.)
+    - label: "breaking"
+      instructions: >
+        For changes that break existing functionality or require migration
+    - label: "performance"
+      instructions: >
+        For performance optimizations or potential performance impacts
+
+  # =============================================================================
+  # PATH FILTERING - Focus on source code, exclude build artifacts
+  # =============================================================================
+  
+  path_filters:
+    # Include source directories
+    - "src/**"
+    - "drizzle/**"
+    - "*.ts"
+    - "*.tsx"
+    - "*.js"
+    - "*.jsx"
+    - "*.json"
+    - "*.md"
+    - "*.yaml"
+    - "*.yml"
+    
+    # Exclude build artifacts and dependencies
+    - "!node_modules/**"
+    - "!.next/**"
+    - "!dist/**"
+    - "!build/**"
+    - "!coverage/**"
+    - "!*.min.js"
+    - "!*.min.css"
+    - "!pnpm-lock.yaml"
+    - "!tsconfig.tsbuildinfo"
+
+  # =============================================================================
+  # PATH-SPECIFIC INSTRUCTIONS - Security and quality focus
+  # =============================================================================
+  
+  path_instructions:
+    - path: "src/server/**"
+      instructions: >
+        CRITICAL SECURITY REVIEW: Verify all authentication checks, input
+        validation with Zod schemas, proper use of protectedProcedure vs
+        publicProcedure. Ensure no server secrets are exposed to client.
+        Check for SQL injection vulnerabilities and proper Drizzle ORM usage.
+      
+    - path: "src/app/api/**"
+      instructions: >
+        API Security Review: Verify proper authentication, rate limiting
+        considerations, input validation, and error handling. Ensure no
+        sensitive data leakage in responses.
+      
+    - path: "src/server/auth/**"
+      instructions: >
+        AUTHENTICATION SECURITY: Thoroughly review all authentication logic,
+        session handling, and security configurations. Check for
+        authentication bypasses and proper NextAuth.js usage.
+      
+    - path: "src/server/db/**"
+      instructions: >
+        DATABASE SECURITY: Verify schema changes maintain data integrity,
+        proper foreign key relationships, appropriate indexes, and follow
+        naming conventions (pdx-diy_tableName). Check for potential data
+        exposure.
+      
+    - path: "src/env.js"
+      instructions: >
+        ENVIRONMENT SECURITY: Verify all environment variables are properly
+        validated, no secrets are exposed to client (NEXT_PUBLIC_ prefix),
+        and all server-side secrets are properly protected.
+      
+    - path: "drizzle/**"
+      instructions: >
+        DATABASE MIGRATION REVIEW: Verify migrations are safe, reversible
+        where possible, maintain data integrity, and follow proper indexing
+        strategies. Check for breaking changes.
+      
+    - path: "**/*.test.*"
+      instructions: >
+        Test Review: Ensure tests cover security scenarios, authentication
+        flows, and edge cases. Verify no hardcoded secrets in test files.
+
+  # =============================================================================
+  # SECURITY TOOLS - Critical monitoring for PDX-DIY
+  # =============================================================================
+  
+  tools:
+    # TypeScript/JavaScript linting (integrate with existing Biome)
+    biome:
+      enabled: true
+      
+    # Security vulnerability scanning
+    semgrep:
+      enabled: true
+      
+    # Secret detection - critical for this project
+    gitleaks:
+      enabled: true
+      
+    # Additional security tools
+    checkov:
+      enabled: true
+      
+    # YAML linting for configuration files
+    yamllint:
+      enabled: true
+      
+    # Dockerfile security (if Docker is added later)
+    hadolint:
+      enabled: true
+
+  # =============================================================================
+  # AUTO REVIEW SETTINGS
+  # =============================================================================
+  
+  auto_review:
+    enabled: true
+    drafts: false
+
+# =============================================================================
+# KNOWLEDGE BASE - Learn from project patterns
+# =============================================================================
+
+knowledge_base:
+  # Learn from project patterns
+  learnings:
+    scope: "local"
+    
+  # Use repository issues for context
+  issues:
+    scope: "local"
+    
+  # Learn from pull requests
+  pull_requests:
+    scope: "local"
+
+# =============================================================================
+# CODE GENERATION
+# =============================================================================
+
+code_generation:
+  # TypeScript-focused docstring generation
+  docstrings:
+    language: "en-US"
+    path_instructions:
+      - path: "src/server/**"
+        instructions: >
+          Generate comprehensive JSDoc comments focusing on security
+          considerations, parameter validation, and error handling
+      - path: "src/app/**"
+        instructions: >
+          Generate clear component documentation with props, usage examples,
+          and accessibility considerations
+        
+  # Security-focused unit test generation
+  unit_tests:
+    path_instructions:
+      - path: "src/server/**"
+        instructions: >
+          Generate tests covering security scenarios, authentication edge
+          cases, input validation, and error conditions
+      - path: "src/app/**"
+        instructions: >
+          Generate component tests covering user interactions, accessibility,
+          and error states
