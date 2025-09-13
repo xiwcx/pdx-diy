@@ -20,7 +20,7 @@
 		"test:run": "vitest run",
 		"test:coverage": "vitest run --coverage",
 		"typecheck": "tsc --noEmit",
-		"pre-commit": "biome check --write . && tsc --noEmit",
+		"pre-commit": "pnpm check:write && pnpm typecheck",
 		"pre-push": "pnpm test:run"
 	},
 	"dependencies": {
@@ -61,6 +61,5 @@
 		"initVersion": "7.39.3"
 	},
 	"packageManager": "pnpm@10.15.1",
-	"simple-pre-commit": "pnpm pre-commit",
-	"simple-pre-push": "pnpm pre-push"
+	"simple-pre-commit": "pnpm pre-commit"
 }
