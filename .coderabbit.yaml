@@ -187,11 +187,11 @@ reviews:
       enabled: true
 
   # =============================================================================
-  # AUTO REVIEW SETTINGS
+  # AUTO REVIEW SETTINGS - Incremental reviews on demand
   # =============================================================================
   
   auto_review:
-    enabled: true
+    enabled: false
     drafts: false
 
 # =============================================================================
@@ -240,3 +240,4 @@ code_generation:
         instructions: >
           Generate component tests covering user interactions, accessibility,
           and error states
+          
