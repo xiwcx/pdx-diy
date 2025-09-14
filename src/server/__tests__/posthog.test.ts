@@ -11,13 +11,16 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// Mock server-only to prevent client component error in tests
+vi.mock("server-only", () => ({}));
+
 // Mock PostHog before importing anything else
 vi.mock("posthog-node", () => ({
 	PostHog: vi.fn(),
 }));
 
 // Mock environment variables
-vi.mock("~/env.js", () => ({
+vi.mock("~/env", () => ({
 	env: {
 		POSTHOG_KEY: "test-posthog-key",
 		POSTHOG_HOST: "https://test.posthog.com",
@@ -54,6 +57,9 @@ describe("PostHog Utilities", () => {
 
 		// Spy on console.error to test error logging
 		consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+		// Reset global PostHog instance
+		globalThis.__posthogClient = undefined;
 
 		// Reset module state to ensure fresh singleton
 		vi.resetModules();

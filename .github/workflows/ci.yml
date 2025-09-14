@@ -1,0 +1,180 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel in-progress runs on new pushes to the same PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Biome linting and formatting
+        run: pnpm check
+
+      - name: Run TypeScript type checking
+        run: pnpm typecheck
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: static-analysis
+    strategy:
+      fail-fast: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests with coverage
+        run: pnpm test:coverage
+
+      - name: Extract coverage percentage
+        id: coverage
+        run: |
+          COVERAGE_PERCENT=$(node -e "
+            try {
+              const fs = require('fs');
+              const coverage = JSON.parse(fs.readFileSync('coverage/coverage-final.json', 'utf8'));
+              
+              let totalStatements = 0;
+              let coveredStatements = 0;
+              
+              for (const filePath in coverage) {
+                const fileData = coverage[filePath];
+                const statements = fileData.s;
+                for (const stmtId in statements) {
+                  totalStatements++;
+                  if (statements[stmtId] > 0) {
+                    coveredStatements++;
+                  }
+                }
+              }
+              
+              const percent = totalStatements > 0 ? Math.round((coveredStatements / totalStatements) * 100) : 0;
+              console.log(percent);
+            } catch (e) {
+              console.log('0');
+            }
+          ")
+          echo "percentage=$COVERAGE_PERCENT" >> $GITHUB_OUTPUT
+
+      - name: Report coverage
+        run: |
+          COVERAGE_PERCENT=${{ steps.coverage.outputs.percentage }}
+          echo "📊 Test Coverage: $COVERAGE_PERCENT%"
+          
+          if [ "$COVERAGE_PERCENT" -ge 80 ]; then
+            echo "✅ Excellent coverage!"
+          elif [ "$COVERAGE_PERCENT" -ge 60 ]; then
+            echo "✅ Good coverage"
+          elif [ "$COVERAGE_PERCENT" -ge 40 ]; then
+            echo "⚠️  Coverage could be improved"
+          else
+            echo "❌ Low coverage - consider adding more tests"
+          fi
+
+  build:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    needs: static-analysis
+    strategy:
+      fail-fast: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build application
+        run: pnpm build
+        env:
+          # Provide placeholder values for build-time env vars
+          AUTH_SECRET: "build-time-placeholder"
+          AUTH_RESEND_KEY: "build-time-placeholder"
+          AUTH_RESEND_FROM: "build-time-placeholder@example.com"
+          DATABASE_URL: "postgresql://placeholder:placeholder@localhost:5432/placeholder"
+          POSTHOG_KEY: "phc_placeholder"
+          POSTHOG_HOST: "https://app.posthog.com"
+          NEXT_PUBLIC_POSTHOG_KEY: "phc_placeholder"
+          NEXT_PUBLIC_POSTHOG_HOST: "https://app.posthog.com"

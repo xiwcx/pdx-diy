@@ -16,6 +16,7 @@
  * @since 1.0.0
  */
 
+import "server-only";
 import { PostHog } from "posthog-node";
 import { env } from "~/env";
 
@@ -219,8 +220,8 @@ export async function getFeatureFlags(
 	try {
 		const client = getPostHogClient();
 		const flags = await client.getAllFlags(distinctId, groups);
-		// Propagate null if PostHog returns null
-		return flags;
+		// Propagate null if PostHog returns null/undefined
+		return flags ?? null;
 	} catch (error) {
 		console.error("Failed to get feature flags from PostHog:", error);
 		return null;
