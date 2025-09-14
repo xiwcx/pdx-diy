@@ -82,6 +82,7 @@ PDX-DIY is an open-source Next.js 15 application using TypeScript, tRPC, Drizzle
 - Run `pnpm check` before committing (Biome linting)
 - Run `pnpm typecheck` to verify TypeScript compliance
 - Run `pnpm db:push` to apply database changes
+- Run `pnpm test:run` for agentic workflows (use `pnpm test` for development with watch mode)
 - All code must pass strict TypeScript checks (no `any` types)
 - Test authentication flows thoroughly
 
