@@ -1,0 +1,5 @@
+# Run Biome check with auto-fix
+pnpm check:write
+
+# Run TypeScript type checking
+pnpm typecheck
