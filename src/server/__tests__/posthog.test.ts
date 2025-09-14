@@ -55,6 +55,9 @@ describe("PostHog Utilities", () => {
 		// Spy on console.error to test error logging
 		consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
+		// Reset global PostHog instance
+		globalThis.__posthogClient = undefined;
+
 		// Reset module state to ensure fresh singleton
 		vi.resetModules();
 
