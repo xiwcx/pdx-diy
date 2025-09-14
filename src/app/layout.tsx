@@ -2,6 +2,7 @@ import "~/styles/globals.css";
 
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import { Suspense } from "react";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { PostHogPageview } from "./_components/posthog-pageview";
@@ -55,7 +56,9 @@ export default function RootLayout({
 			<body className={geist.className}>
 				<Providers>
 					<TRPCReactProvider>
-						<PostHogPageview />
+						<Suspense fallback={null}>
+							<PostHogPageview />
+						</Suspense>
 						{children}
 					</TRPCReactProvider>
 				</Providers>
