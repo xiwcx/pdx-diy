@@ -1,6 +1,6 @@
 # PDX DIY
 
-[![CI](https://github.com/YOUR_USERNAME/pdx-diy/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/pdx-diy/actions/workflows/ci.yml)
+[![CI](https://github.com/xiwcx/pdx-diy/actions/workflows/ci.yml/badge.svg)](https://github.com/xiwcx/pdx-diy/actions/workflows/ci.yml)
 
 This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
 

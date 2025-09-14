@@ -16,6 +16,7 @@
  * @since 1.0.0
  */
 
+import "server-only";
 import { PostHog } from "posthog-node";
 import { env } from "~/env";
 
