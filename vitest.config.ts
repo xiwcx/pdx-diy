@@ -26,6 +26,10 @@ export default defineConfig({
 			},
 		},
 		env: {
+			AUTH_SECRET: "test-secret",
+			AUTH_RESEND_KEY: "test-resend-key",
+			AUTH_RESEND_FROM: "test@example.com",
+			DATABASE_URL: "postgresql://test:test@localhost:5432/test",
 			NEXT_PUBLIC_POSTHOG_KEY: "test-posthog-key",
 			NEXT_PUBLIC_POSTHOG_HOST: "https://test.posthog.com",
 			POSTHOG_KEY: "test-posthog-key",

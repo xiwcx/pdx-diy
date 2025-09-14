@@ -164,8 +164,11 @@ jobs:
         run: pnpm build
         env:
           # Provide placeholder values for build-time env vars
-          NEXTAUTH_SECRET: "build-time-placeholder"
-          NEXTAUTH_URL: "http://localhost:3000"
+          AUTH_SECRET: "build-time-placeholder"
+          AUTH_RESEND_KEY: "build-time-placeholder"
+          AUTH_RESEND_FROM: "build-time-placeholder@example.com"
           DATABASE_URL: "postgresql://placeholder:placeholder@localhost:5432/placeholder"
           POSTHOG_KEY: "phc_placeholder"
           POSTHOG_HOST: "https://app.posthog.com"
+          NEXT_PUBLIC_POSTHOG_KEY: "phc_placeholder"
+          NEXT_PUBLIC_POSTHOG_HOST: "https://app.posthog.com"
