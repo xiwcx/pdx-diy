@@ -27,8 +27,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -49,8 +49,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
 
       - name: Cache TypeScript build info
         uses: actions/cache@v4
@@ -92,8 +92,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
 
       - name: Cache Vitest
         uses: actions/cache@v4
@@ -148,7 +148,7 @@ jobs:
         run: |
           COVERAGE_PERCENT=${{ steps.coverage.outputs.percentage }}
           echo "📊 Test Coverage: $COVERAGE_PERCENT%"
-          
+
           if [ "$COVERAGE_PERCENT" -ge 80 ]; then
             echo "✅ Excellent coverage!"
           elif [ "$COVERAGE_PERCENT" -ge 60 ]; then
@@ -177,8 +177,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
