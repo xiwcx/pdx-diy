@@ -52,6 +52,17 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
 
+      - name: Cache TypeScript build info
+        uses: actions/cache@v4
+        with:
+          path: |
+            tsconfig.tsbuildinfo
+            .next/cache
+          key: ${{ runner.os }}-typescript-${{ hashFiles('**/tsconfig.json', '**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-typescript-${{ hashFiles('**/tsconfig.json', '**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-typescript-
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         # Note: This will be very fast due to cache from install-deps job,
@@ -83,6 +94,17 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
+
+      - name: Cache Vitest
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules/.vite
+            coverage
+          key: ${{ runner.os }}-vitest-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.test.{ts,tsx}', '**/vitest.config.ts') }}
+          restore-keys: |
+            ${{ runner.os }}-vitest-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-vitest-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -168,9 +190,12 @@ jobs:
         with:
           path: |
             .next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+            .next/cache/webpack
+            tsconfig.tsbuildinfo
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx', '**/next.config.js') }}
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-nextjs-
 
       - name: Build application
         run: pnpm build
