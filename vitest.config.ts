@@ -2,9 +2,21 @@ import { resolve } from "node:path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+	// Configure cache directory (Vitest will use cacheDir/vitest)
+	cacheDir: "node_modules/.vite",
+
 	test: {
 		globals: true,
 		setupFiles: ["./src/test/setup-tests.ts"],
+
+		// Enable watch mode optimizations
+		exclude: [
+			"**/node_modules/**",
+			"**/dist/**",
+			"**/.next/**",
+			"**/coverage/**",
+		],
+
 		coverage: {
 			provider: "v8",
 			reporter: ["text", "json", "html", "lcov"],

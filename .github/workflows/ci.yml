@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 # Cancel in-progress runs on new pushes to the same PR
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,29 +22,36 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.15.1
 
-      - name: Cache dependencies
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - name: Cache TypeScript build info
         uses: actions/cache@v4
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: |
+            tsconfig.tsbuildinfo
+            .next/cache
+          key: ${{ runner.os }}-typescript-${{ hashFiles('**/tsconfig.json', '**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.ts', '**/*.tsx') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            ${{ runner.os }}-typescript-${{ hashFiles('**/tsconfig.json', '**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-typescript-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Run Biome linting and formatting
         run: pnpm check
+
+      - name: Check YAML formatting (Prettier)
+        run: pnpm format:yaml:check
 
       - name: Run TypeScript type checking
         run: pnpm typecheck
@@ -56,23 +66,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.15.1
 
-      - name: Cache dependencies
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - name: Cache Vitest
         uses: actions/cache@v4
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: |
+            node_modules/.vite
+            coverage
+          key: ${{ runner.os }}-vitest-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.test.{ts,tsx}', '**/vitest.config.ts') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            ${{ runner.os }}-vitest-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-vitest-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -114,7 +128,7 @@ jobs:
         run: |
           COVERAGE_PERCENT=${{ steps.coverage.outputs.percentage }}
           echo "📊 Test Coverage: $COVERAGE_PERCENT%"
-          
+
           if [ "$COVERAGE_PERCENT" -ge 80 ]; then
             echo "✅ Excellent coverage!"
           elif [ "$COVERAGE_PERCENT" -ge 60 ]; then
@@ -135,36 +149,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.15.1
 
-      - name: Cache dependencies
-        uses: actions/cache@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Cache Next.js build
         uses: actions/cache@v4
         with:
           path: |
-            ~/.npm
-            ${{ github.workspace }}/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+            .next/cache
+            .next/cache/webpack
+            tsconfig.tsbuildinfo
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx', '**/next.config.js') }}
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+            ${{ runner.os }}-nextjs-
 
       - name: Build application
         run: pnpm build

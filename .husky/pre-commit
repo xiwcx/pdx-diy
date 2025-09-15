@@ -1,0 +1,10 @@
+set -euo pipefail
+
+# Run YAML formatting
+pnpm format:yaml
+
+# Run Biome check with auto-fix
+pnpm check:write
+
+# Run TypeScript type checking
+pnpm typecheck

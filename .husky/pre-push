@@ -1,0 +1,4 @@
+set -euo pipefail
+
+# Run tests before pushing
+pnpm test:run -- --bail

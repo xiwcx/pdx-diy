@@ -22,7 +22,7 @@ enable_free_tier: true
 reviews:
   # Assertive profile for detailed, thorough feedback
   profile: "assertive"
-  
+
   # Workflow settings
   request_changes_workflow: true
   high_level_summary: true
@@ -32,28 +32,26 @@ reviews:
   auto_title_instructions: >
     Generate concise, descriptive titles following conventional commit format.
     Focus on the primary change type and scope.
-  
+
   # Status and tracking
   review_status: true
   commit_status: true
   fail_commit_status: true
-  
+
   # Enhanced walkthrough features
   collapse_walkthrough: false
   changed_files_summary: true
-  sequence_diagrams: true
-  estimate_code_review_effort: true
   assess_linked_issues: true
   related_issues: true
   related_prs: true
-  
+
   # Team workflow automation
   suggested_labels: true
   auto_apply_labels: true
   suggested_reviewers: true
   auto_assign_reviewers: true
   poem: false
-  
+
   # Labeling instructions for PDX-DIY project
   labeling_instructions:
     - label: "security"
@@ -84,20 +82,24 @@ reviews:
   # =============================================================================
   # PATH FILTERING - Focus on source code, exclude build artifacts
   # =============================================================================
-  
+
   path_filters:
     # Include source directories
     - "src/**"
     - "drizzle/**"
-    - "*.ts"
-    - "*.tsx"
-    - "*.js"
-    - "*.jsx"
-    - "*.json"
-    - "*.md"
-    - "*.yaml"
-    - "*.yml"
-    
+    - "**/*.ts"
+    - "**/*.tsx"
+    - "**/*.js"
+    - "**/*.jsx"
+    - "**/*.json"
+    - "**/*.md"
+    - "**/*.yaml"
+    - "**/*.yml"
+    - ".github/**"
+    - ".husky/**"
+    - ".*rc*"
+    - ".*config*"
+
     # Exclude build artifacts and dependencies
     - "!node_modules/**"
     - "!.next/**"
@@ -112,7 +114,7 @@ reviews:
   # =============================================================================
   # PATH-SPECIFIC INSTRUCTIONS - Security and quality focus
   # =============================================================================
-  
+
   path_instructions:
     - path: "src/server/**"
       instructions: >
@@ -120,38 +122,38 @@ reviews:
         validation with Zod schemas, proper use of protectedProcedure vs
         publicProcedure. Ensure no server secrets are exposed to client.
         Check for SQL injection vulnerabilities and proper Drizzle ORM usage.
-      
+
     - path: "src/app/api/**"
       instructions: >
         API Security Review: Verify proper authentication, rate limiting
         considerations, input validation, and error handling. Ensure no
         sensitive data leakage in responses.
-      
+
     - path: "src/server/auth/**"
       instructions: >
         AUTHENTICATION SECURITY: Thoroughly review all authentication logic,
         session handling, and security configurations. Check for
         authentication bypasses and proper NextAuth.js usage.
-      
+
     - path: "src/server/db/**"
       instructions: >
         DATABASE SECURITY: Verify schema changes maintain data integrity,
         proper foreign key relationships, appropriate indexes, and follow
         naming conventions (pdx-diy_tableName). Check for potential data
         exposure.
-      
+
     - path: "src/env.js"
       instructions: >
         ENVIRONMENT SECURITY: Verify all environment variables are properly
         validated, no secrets are exposed to client (NEXT_PUBLIC_ prefix),
         and all server-side secrets are properly protected.
-      
+
     - path: "drizzle/**"
       instructions: >
         DATABASE MIGRATION REVIEW: Verify migrations are safe, reversible
         where possible, maintain data integrity, and follow proper indexing
         strategies. Check for breaking changes.
-      
+
     - path: "**/*.test.*"
       instructions: >
         Test Review: Ensure tests cover security scenarios, authentication
@@ -160,36 +162,28 @@ reviews:
   # =============================================================================
   # SECURITY TOOLS - Critical monitoring for PDX-DIY
   # =============================================================================
-  
+
   tools:
     # TypeScript/JavaScript linting (integrate with existing Biome)
     biome:
       enabled: true
-      
+
     # Security vulnerability scanning
     semgrep:
       enabled: true
-      
+
     # Secret detection - critical for this project
     gitleaks:
       enabled: true
-      
+
     # Additional security tools
     checkov:
-      enabled: true
-      
-    # YAML linting for configuration files
-    yamllint:
-      enabled: true
-      
-    # Dockerfile security (if Docker is added later)
-    hadolint:
       enabled: true
 
   # =============================================================================
   # AUTO REVIEW SETTINGS - Incremental reviews on demand
   # =============================================================================
-  
+
   auto_review:
     enabled: false
     drafts: false
@@ -202,11 +196,11 @@ knowledge_base:
   # Learn from project patterns
   learnings:
     scope: "local"
-    
+
   # Use repository issues for context
   issues:
     scope: "local"
-    
+
   # Learn from pull requests
   pull_requests:
     scope: "local"
@@ -228,7 +222,7 @@ code_generation:
         instructions: >
           Generate clear component documentation with props, usage examples,
           and accessibility considerations
-        
+
   # Security-focused unit test generation
   unit_tests:
     path_instructions:
@@ -240,4 +234,3 @@ code_generation:
         instructions: >
           Generate component tests covering user interactions, accessibility,
           and error states
-          

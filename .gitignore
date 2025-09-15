@@ -8,6 +8,9 @@
 # testing
 /coverage
 
+# vite/vitest cache
+node_modules/.vite
+
 # database
 /prisma/db.sqlite
 /prisma/db.sqlite-journal
