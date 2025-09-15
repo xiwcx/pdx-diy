@@ -12,33 +12,50 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  static-analysis:
-    name: Static Analysis
+  install-deps:
+    name: Install Dependencies
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.15.1
 
-      - name: Cache dependencies
-        uses: actions/cache@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+  static-analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    needs: install-deps
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        # Note: This will be very fast due to cache from install-deps job,
+        # but provides resilience against cache misses or failures
 
       - name: Run Biome linting and formatting
         run: pnpm check
@@ -49,33 +66,28 @@ jobs:
   test:
     name: Unit Tests
     runs-on: ubuntu-latest
-    needs: static-analysis
+    needs: [install-deps, static-analysis]
     strategy:
       fail-fast: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.15.1
 
-      - name: Cache dependencies
-        uses: actions/cache@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+        # Note: This will be very fast due to cache from install-deps job,
+        # but provides resilience against cache misses or failures
 
       - name: Run tests with coverage
         run: pnpm test:coverage
@@ -128,43 +140,37 @@ jobs:
   build:
     name: Build Verification
     runs-on: ubuntu-latest
-    needs: static-analysis
+    needs: [install-deps, static-analysis]
     strategy:
       fail-fast: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.15.1
 
-      - name: Cache dependencies
-        uses: actions/cache@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        # Note: This will be very fast due to cache from install-deps job,
+        # but provides resilience against cache misses or failures
 
       - name: Cache Next.js build
         uses: actions/cache@v4
         with:
           path: |
-            ~/.npm
-            ${{ github.workspace }}/.next/cache
+            .next/cache
           key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
 
       - name: Build application
         run: pnpm build
