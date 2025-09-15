@@ -44,9 +44,6 @@ const config = {
 	trailingSlash: false,
 	poweredByHeader: false,
 
-	// Configure output for better caching
-	output: "standalone",
-
 	// Enable compression
 	compress: true,
 };
