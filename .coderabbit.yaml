@@ -41,8 +41,6 @@ reviews:
   # Enhanced walkthrough features
   collapse_walkthrough: false
   changed_files_summary: true
-  sequence_diagrams: true
-  estimate_code_review_effort: true
   assess_linked_issues: true
   related_issues: true
   related_prs: true
@@ -89,14 +87,18 @@ reviews:
     # Include source directories
     - "src/**"
     - "drizzle/**"
-    - "*.ts"
-    - "*.tsx"
-    - "*.js"
-    - "*.jsx"
-    - "*.json"
-    - "*.md"
-    - "*.yaml"
-    - "*.yml"
+    - "**/*.ts"
+    - "**/*.tsx"
+    - "**/*.js"
+    - "**/*.jsx"
+    - "**/*.json"
+    - "**/*.md"
+    - "**/*.yaml"
+    - "**/*.yml"
+    - ".github/**"
+    - ".husky/**"
+    - ".*rc*"
+    - ".*config*"
 
     # Exclude build artifacts and dependencies
     - "!node_modules/**"
