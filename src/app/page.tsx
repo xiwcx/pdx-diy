@@ -4,11 +4,11 @@ import { auth } from "~/server/auth";
 import { HydrateClient, api } from "~/trpc/server";
 
 /**
- * Home page component displaying the PDX DIY welcome message and authentication status.
+ * Home page component displaying the PDX DIY event list and navigation.
  *
- * This is the main landing page that shows a welcome message and provides
- * authentication controls. Displays the logged-in user's name if authenticated,
- * otherwise shows a sign-in link.
+ * This is the main landing page that shows all events in a simple list format.
+ * Each event displays title and creation date, and is clickable to navigate
+ * to the event detail page.
  *
  * @returns The home page JSX element
  *
@@ -20,6 +20,7 @@ import { HydrateClient, api } from "~/trpc/server";
  */
 export default async function Home() {
 	const session = await auth();
+	const events = await api.event.getMany();
 
 	return (
 		<HydrateClient>
@@ -28,8 +29,6 @@ export default async function Home() {
 					<h1>PDX DIY</h1>
 
 					<div>
-						<p>Welcome to PDX DIY</p>
-
 						<Link href="/events/create">Create event</Link>
 
 						<div>
@@ -43,6 +42,26 @@ export default async function Home() {
 								{session ? "Sign out" : "Sign in"}
 							</Link>
 						</div>
+					</div>
+
+					<div>
+						<h2>Events</h2>
+						{events.length === 0 ? (
+							<p>No events yet. Create the first one!</p>
+						) : (
+							<ul>
+								{events.map((event) => (
+									<li key={event.id}>
+										<Link href={`/events/${event.id}`}>
+											<div>
+												<h3>{event.title}</h3>
+												<p>Created: {event.createdAt.toLocaleDateString()}</p>
+											</div>
+										</Link>
+									</li>
+								))}
+							</ul>
+						)}
 					</div>
 				</div>
 			</main>
