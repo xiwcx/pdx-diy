@@ -1,0 +1,1 @@
+DROP TABLE "pdx-diy_post" CASCADE;

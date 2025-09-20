@@ -36,36 +36,6 @@ const defaultUUID = (d: PgColumnsBuilders) =>
 export const createTable = pgTableCreator((name) => `pdx-diy_${name}`);
 
 /**
- * Posts table schema for storing user-created posts.
- *
- * Each post has an auto-incrementing ID, a name, creator reference,
- * and timestamps for creation and updates. Includes indexes for
- * optimal query performance.
- *
- * @table pdx-diy_post
- */
-export const posts = createTable(
-	"post",
-	(d) => ({
-		id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-		name: d.varchar({ length: 256 }),
-		createdById: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => users.id),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
-	}),
-	(t) => [
-		index("created_by_idx").on(t.createdById),
-		index("name_idx").on(t.name),
-	],
-);
-
-/**
  * Events table schema for storing community events.
  *
  * TODO:

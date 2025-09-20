@@ -1,8 +1,8 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { api } from "~/trpc/react";
 import { eventSchema } from "~/shared/schemas/event";
+import { api } from "~/trpc/react";
 
 export function CreateEventForm() {
 	const createEvent = api.event.create.useMutation();
@@ -44,7 +44,7 @@ export function CreateEventForm() {
 				<form.Field
 					name="title"
 					validators={{
-						onChange: ({ value }) => 
+						onChange: ({ value }) =>
 							!value || value.length === 0 ? "Title is required" : undefined,
 					}}
 				>
