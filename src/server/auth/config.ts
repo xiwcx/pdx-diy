@@ -1,6 +1,5 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import type { DefaultSession, NextAuthConfig } from "next-auth";
-import type { JWT } from "next-auth/jwt";
 import Resend from "next-auth/providers/resend";
 
 import { env } from "~/env";
@@ -76,11 +75,16 @@ export const authConfig = {
 		// JWT callback only for production
 		...(process.env.NODE_ENV === "production" && {
 			jwt: async ({ token, user }) => {
-				if (user) token.sub = String(user.id);
+				if (user) {
+					token.sub = String(user.id); // Standard JWT claim (subject)
+					token.id = String(user.id); // Custom property for reliable access in session callback
+				}
 				return token;
 			},
 		}),
-		// Session callback handles both database and JWT strategies
+		// Session callback - NextAuth.js v5 signature varies by strategy
+		// Database strategy: { session, user }
+		// JWT strategy: { session, token }
 		session: ({ session, token, user }) => {
 			// For database strategy (test/development), user is provided
 			if (user) {
@@ -93,18 +97,14 @@ export const authConfig = {
 				};
 			}
 			// For JWT strategy (production), token is provided
-			if (token) {
-				// Safely derive user ID from available sources
-				const userId = token.sub ?? (token as { id?: string }).id;
-				if (userId) {
-					return {
-						...session,
-						user: {
-							...session.user,
-							id: String(userId),
-						},
-					};
-				}
+			if (token?.id) {
+				return {
+					...session,
+					user: {
+						...session.user,
+						id: String(token.id),
+					},
+				};
 			}
 			return session;
 		},
