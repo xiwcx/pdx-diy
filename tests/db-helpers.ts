@@ -40,9 +40,7 @@ export async function cleanupTestDatabase() {
  * Resets the test database by clearing all event data.
  */
 export async function resetDatabaseForTest() {
-	console.log("🔄 Resetting database for test...");
 	await resetTestDatabase();
-	console.log("✅ Database reset complete");
 }
 
 /**
