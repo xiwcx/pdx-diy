@@ -13,6 +13,7 @@
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
 		"dev": "next dev --turbo",
+		"e2e:test": "playwright test",
 		"format:yaml": "prettier --write \"**/*.{yml,yaml}\"",
 		"format:yaml:check": "prettier --check \"**/*.{yml,yaml}\"",
 		"preview": "next build && next start",
@@ -21,6 +22,8 @@
 		"test:ui": "vitest --ui",
 		"test:run": "vitest run",
 		"test:coverage": "vitest run --coverage",
+		"e2e:db:reset": "tsx scripts/reset-test-db.ts",
+		"e2e:db:setup": "tsx scripts/setup-e2e-db.ts",
 		"typecheck": "tsc --noEmit",
 		"prepare": "husky"
 	},
@@ -48,6 +51,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
+		"@playwright/test": "^1.55.0",
 		"@testing-library/jest-dom": "^6.8.0",
 		"@testing-library/react": "^16.3.0",
 		"@testing-library/user-event": "^14.6.1",
@@ -60,6 +64,7 @@
 		"husky": "^9.1.7",
 		"jsdom": "^26.1.0",
 		"prettier": "^3.6.2",
+		"tsx": "^4.20.5",
 		"typescript": "^5.8.2",
 		"vitest": "^3.2.4"
 	},

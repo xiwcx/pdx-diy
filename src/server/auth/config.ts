@@ -1,5 +1,6 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import type { DefaultSession, NextAuthConfig } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import Resend from "next-auth/providers/resend";
 
 import { env } from "~/env";
@@ -35,6 +36,10 @@ declare module "next-auth" {
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
+ * Uses environment-based strategy selection:
+ * - Test/Development: Database sessions (easier testing)
+ * - Production: JWT sessions (better performance)
+ *
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
@@ -57,13 +62,50 @@ export const authConfig = {
 		sessionsTable: sessions,
 		verificationTokensTable: verificationTokens,
 	}),
+	session: {
+		strategy: process.env.NODE_ENV === "production" ? "jwt" : "database",
+		maxAge: 30 * 24 * 60 * 60, // 30 days
+	},
+	// JWT configuration only for production
+	...(process.env.NODE_ENV === "production" && {
+		jwt: {
+			maxAge: 30 * 24 * 60 * 60, // 30 days
+		},
+	}),
 	callbacks: {
-		session: ({ session, user }) => ({
-			...session,
-			user: {
-				...session.user,
-				id: user.id,
+		// JWT callback only for production
+		...(process.env.NODE_ENV === "production" && {
+			jwt: async ({ token, user }) => {
+				// If user is provided (during sign in), add user data to token
+				if (user) {
+					token.id = user.id;
+				}
+				return token;
 			},
 		}),
+		// Session callback handles both database and JWT strategies
+		session: ({ session, token, user }) => {
+			// For database strategy (test/development), user is provided
+			if (user) {
+				return {
+					...session,
+					user: {
+						...session.user,
+						id: user.id,
+					},
+				};
+			}
+			// For JWT strategy (production), token is provided
+			if (token) {
+				return {
+					...session,
+					user: {
+						...session.user,
+						id: token.id as string,
+					},
+				};
+			}
+			return session;
+		},
 	},
 } satisfies NextAuthConfig;
