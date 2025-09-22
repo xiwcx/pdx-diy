@@ -44,8 +44,8 @@ const getQueryClient = () => {
  * @example
  * ```typescript
  * // In a React component
- * const { data: posts } = api.post.getLatest.useQuery();
- * const createPost = api.post.create.useMutation();
+ * const { data: events } = api.event.getAll.useQuery();
+ * const createEvent = api.event.create.useMutation();
  * ```
  */
 export const api = createTRPCReact<AppRouter>();

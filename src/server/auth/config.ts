@@ -32,8 +32,14 @@ declare module "next-auth" {
 	// }
 }
 
+const maxAge = 14 * 24 * 60 * 60; // 14 days
+
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
+ *
+ * Uses environment-based strategy selection:
+ * - Test/Development: Database sessions (easier testing)
+ * - Production: JWT sessions (better performance)
  *
  * @see https://next-auth.js.org/configuration/options
  */
@@ -57,13 +63,50 @@ export const authConfig = {
 		sessionsTable: sessions,
 		verificationTokensTable: verificationTokens,
 	}),
+	session: {
+		strategy: process.env.NODE_ENV === "production" ? "jwt" : "database",
+		maxAge,
+	},
+	// JWT configuration only for production
+	...(process.env.NODE_ENV === "production" && {
+		jwt: { maxAge },
+	}),
 	callbacks: {
-		session: ({ session, user }) => ({
-			...session,
-			user: {
-				...session.user,
-				id: user.id,
+		// JWT callback only for production
+		...(process.env.NODE_ENV === "production" && {
+			jwt: async ({ token, user }) => {
+				if (user) {
+					token.sub = String(user.id); // Standard JWT claim (subject)
+					token.id = String(user.id); // Custom property for reliable access in session callback
+				}
+				return token;
 			},
 		}),
+		// Session callback - NextAuth.js v5 signature varies by strategy
+		// Database strategy: { session, user }
+		// JWT strategy: { session, token }
+		session: ({ session, token, user }) => {
+			// For database strategy (test/development), user is provided
+			if (user) {
+				return {
+					...session,
+					user: {
+						...session.user,
+						id: user.id,
+					},
+				};
+			}
+			// For JWT strategy (production), token is provided
+			if (token?.id) {
+				return {
+					...session,
+					user: {
+						...session.user,
+						id: String(token.id),
+					},
+				};
+			}
+			return session;
+		},
 	},
 } satisfies NextAuthConfig;

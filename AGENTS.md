@@ -77,12 +77,24 @@ PDX-DIY is an open-source Next.js 15 application using TypeScript, tRPC, Drizzle
  - Never send PII, auth tokens, or internal IDs to analytics
  - PostHog project API key (starts with `phc_`) is public by design; do not treat it as a secret. Ensure client and server keys/hosts target the same project/host across environments.
 
-## Testing Instructions
+## Testing
+
+### Test Commands
+
+| Command | Description |
+|---------|-------------|
+| `pnpm test` | Run unit tests in watch mode |
+| `pnpm test:run` | Run unit tests once |
+| `pnpm test:coverage` | Run unit tests with coverage |
+| `pnpm e2e:test --reporter=list` | Run e2e tests (list reporter keeps process from blocking) |
+| `pnpm e2e:db:setup` | Set up test database |
+| `pnpm e2e:db:reset` | Reset test database |
+
+### Testing Guidelines
 
 - Run `pnpm check` before committing (Biome linting)
 - Run `pnpm typecheck` to verify TypeScript compliance
 - Run `pnpm db:push` to apply database changes
-- Run `pnpm test:run` for agentic workflows (use `pnpm test` for development with watch mode)
 - All code must pass strict TypeScript checks (no `any` types)
 - Test authentication flows thoroughly
 

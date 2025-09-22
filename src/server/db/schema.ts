@@ -1,6 +1,20 @@
 import { relations, sql } from "drizzle-orm";
 import { index, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
+import type { PgColumnsBuilders } from "drizzle-orm/pg-core/columns/all";
 import type { AdapterAccount } from "next-auth/adapters";
+import { uuidv7 } from "uuidv7";
+
+/**
+ * Creates a default UUID v7 column for database tables.
+ * @param d - The Drizzle ORM column builder
+ * @returns A varchar column with UUID v7 as default value
+ */
+const defaultUUID = (d: PgColumnsBuilders) =>
+	d
+		.varchar({ length: 255 })
+		.notNull()
+		.primaryKey()
+		.$defaultFn(() => uuidv7());
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -22,34 +36,29 @@ import type { AdapterAccount } from "next-auth/adapters";
 export const createTable = pgTableCreator((name) => `pdx-diy_${name}`);
 
 /**
- * Posts table schema for storing user-created posts.
+ * Events table schema for storing community events.
  *
- * Each post has an auto-incrementing ID, a name, creator reference,
- * and timestamps for creation and updates. Includes indexes for
- * optimal query performance.
+ * TODO:
+ * - make image uploads work
+ * - make addresses work
+ * - make WYSIWYG editor
+ *   - sanitization
+ *   - validation
+ *   - store
+ *   - de/serialization
  *
- * @table pdx-diy_post
+ * @table pdx-diy_event
  */
-export const posts = createTable(
-	"post",
-	(d) => ({
-		id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-		name: d.varchar({ length: 256 }),
-		createdById: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => users.id),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
-	}),
-	(t) => [
-		index("created_by_idx").on(t.createdById),
-		index("name_idx").on(t.name),
-	],
-);
+export const events = createTable("event", (d) => ({
+	id: defaultUUID(d),
+	title: d.varchar({ length: 255 }).notNull(),
+	createdById: d.varchar({ length: 255 }).references(() => users.id),
+	createdAt: d
+		.timestamp({ withTimezone: true })
+		.default(sql`CURRENT_TIMESTAMP`)
+		.notNull(),
+	updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+}));
 
 /**
  * Users table schema for storing user account information.
@@ -60,11 +69,7 @@ export const posts = createTable(
  * @table pdx-diy_user
  */
 export const users = createTable("user", (d) => ({
-	id: d
-		.varchar({ length: 255 })
-		.notNull()
-		.primaryKey()
-		.$defaultFn(() => crypto.randomUUID()),
+	id: defaultUUID(d),
 	name: d.varchar({ length: 255 }),
 	email: d.varchar({ length: 255 }).notNull(),
 	emailVerified: d

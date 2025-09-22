@@ -47,7 +47,7 @@ const caller = createCaller(createContext);
  * @example
  * ```tsx
  * // In a server component
- * const posts = await api.post.getLatest();
+ * const events = await api.event.getAll();
  *
  * // In your page
  * <HydrateClient>
