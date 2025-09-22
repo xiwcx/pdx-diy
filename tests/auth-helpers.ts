@@ -17,8 +17,13 @@ export const TEST_USER = {
 } as const;
 
 /**
- * Creates or gets the test user directly in the database
- * This bypasses the email verification process for testing
+ * Ensures a test user and a corresponding session exist in the test database and returns them.
+ *
+ * Inserts the constant TEST_USER into the users table (setting emailVerified to now) and creates
+ * a session row with a generated session token and a 30-day expiry. Duplicate insertions are
+ * ignored (errors are caught and logged), so calling this multiple times is safe.
+ *
+ * @returns An object with the created-or-existing `user` and the `sessionId` (the generated session token)
  */
 export async function createTestUser() {
 	const { db } = getTestDatabase();
@@ -58,8 +63,12 @@ export async function createTestUser() {
 }
 
 /**
- * Authenticates a page by setting the session cookie
- * This simulates a logged-in user without going through the full auth flow
+ * Authenticate a Playwright page by setting a test session cookie so the page behaves as a logged-in user.
+ *
+ * Adds an "authjs.session-token" cookie to the page context (domain "localhost") for a test session created or retrieved from the test database.
+ *
+ * @param page - Playwright Page whose context will receive the session cookie.
+ * @returns The test user object created or retrieved for the session.
  */
 export async function authenticatePage(page: Page) {
 	const { user, sessionId } = await createTestUser();
@@ -88,7 +97,13 @@ export async function clearAuthentication(page: Page) {
 }
 
 /**
- * Checks if a page is authenticated by looking for user-specific content
+ * Returns whether the given Playwright page appears to be authenticated.
+ *
+ * Waits up to 1 second for a `span` containing the text "Logged in as". Resolves to
+ * `true` if that element appears, otherwise `false`.
+ *
+ * @param page - Playwright Page to inspect for authenticated UI state
+ * @returns `true` when the "Logged in as" indicator is present; `false` otherwise
  */
 export async function isAuthenticated(page: Page): Promise<boolean> {
 	try {
@@ -102,7 +117,9 @@ export async function isAuthenticated(page: Page): Promise<boolean> {
 }
 
 /**
- * Waits for authentication to complete
+ * Waits up to 10 seconds for the page to show a span containing "Logged in as", indicating an authenticated UI state.
+ *
+ * Resolves when that element becomes visible in the DOM.
  */
 export async function waitForAuthentication(page: Page) {
 	// Wait for the "Logged in as" text to be visible

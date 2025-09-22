@@ -11,6 +11,17 @@ import postgres from "postgres";
 
 const DATABASE_URL = "postgresql://test:test@localhost:5433/test";
 
+/**
+ * Truncates designated event tables in the test database while preserving authentication tables.
+ *
+ * This connects to the test database, executes `TRUNCATE ... CASCADE` for the configured event
+ * tables (currently "pdx-diy_event") to remove event data, and leaves auth-related tables
+ * (users, sessions, accounts, tokens) intact so the web server can continue operating.
+ * Per-table truncation failures are logged as warnings; a fatal failure aborts the process
+ * (process exits with code 1). The database client is always closed on completion.
+ *
+ * @returns Resolves when the reset operation has finished (or the process has exited on fatal error).
+ */
 export async function resetTestDatabase(): Promise<void> {
 	console.log("🔄 Resetting test database...");
 

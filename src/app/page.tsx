@@ -4,17 +4,26 @@ import { auth } from "~/server/auth";
 import { HydrateClient, api } from "~/trpc/server";
 
 /**
- * Home page component displaying the PDX DIY event list and navigation.
+ * Server-rendered home page that lists PDX DIY events and provides navigation for creating events and signing in/out.
  *
- * This is the main landing page that shows all events in a simple list format.
- * Each event displays title and creation date, and is clickable to navigate
- * to the event detail page.
+ * Renders a hydrated TRPC client state and displays:
+ * - Header with site title and a "Create event" link.
+ * - Authentication status when a session exists and a sign-in/sign-out link.
+ * - An "Events" section that shows either a fallback message when no events exist or a list of events linking to each event's detail page. Each event shows its title and creation date.
  *
- * @returns The home page JSX element
+ * Notes:
+ * - This is an async server component: it awaits the authenticated session and event list before rendering.
+ * - No props.
+ *
+ * Accessibility considerations:
+ * - Headings are used for document structure (h1 for the page title, h2 for the events section, h3 for each event).
+ * - Links are used for navigation to create an event, authentication endpoints, and individual event pages; ensure surrounding UI provides sufficient focus styles and descriptive link text in the app's global stylesheet or a11y utilities.
+ *
+ * @returns The JSX element for the home page.
  *
  * @example
  * ```tsx
- * // This page is automatically rendered at the root route "/"
+ * // Rendered automatically at the root route ("/")
  * <Home />
  * ```
  */

@@ -1,11 +1,11 @@
 import { resetTestDatabase } from "../scripts/reset-test-db.js";
 
 /**
- * Global teardown for Playwright tests.
+ * Perform global teardown for Playwright tests by resetting the test database.
  *
- * This runs after all tests complete to clean up the test database.
- * This ensures that test data doesn't accumulate between test runs
- * and prevents issues like duplicate events with the same title.
+ * Runs after all tests complete to remove test data and avoid accumulation or conflicts
+ * (for example, duplicate events with the same title). Errors during cleanup are logged
+ * but intentionally not rethrown so they don't mask test failures.
  */
 export default async function globalTeardown() {
 	console.log("🧹 Cleaning up test database...");

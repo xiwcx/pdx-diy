@@ -12,6 +12,14 @@ const DATABASE_URL = "postgresql://test:test@localhost:5433/test";
 let client: postgres.Sql | null = null;
 let db: ReturnType<typeof drizzle> | null = null;
 
+/**
+ * Lazily initializes and returns the test PostgreSQL client and its Drizzle ORM wrapper.
+ *
+ * If the client and/or db are already initialized, the existing instances are returned.
+ * These instances remain live until `cleanupTestDatabase()` is called.
+ *
+ * @returns An object with `client` (the postgres client or null) and `db` (the Drizzle instance or null).
+ */
 export function getTestDatabase() {
 	if (!client || !db) {
 		client = postgres(DATABASE_URL);
@@ -20,6 +28,11 @@ export function getTestDatabase() {
 	return { client, db };
 }
 
+/**
+ * Close the test PostgreSQL client (if initialized) and clear the cached client and ORM instances.
+ *
+ * This awaits the client's shutdown and is a no-op if no client is present.
+ */
 export async function cleanupTestDatabase() {
 	if (client) {
 		await client.end();
@@ -28,12 +41,31 @@ export async function cleanupTestDatabase() {
 	}
 }
 
+/**
+ * Reset the test database to a clean state.
+ *
+ * Calls the shared `resetTestDatabase` routine and awaits completion. Any errors
+ * thrown by the underlying reset operation are propagated to the caller.
+ *
+ * @returns A promise that resolves when the reset completes.
+ */
 export async function resetDatabaseForTest() {
 	console.log("🔄 Resetting database for test...");
 	await resetTestDatabase();
 	console.log("✅ Database reset complete");
 }
 
+/**
+ * Seeds test data into the test database.
+ *
+ * Iterates over the provided mapping of table names to record arrays and (when enabled)
+ * inserts the records into the corresponding tables in the test database. Currently the
+ * actual insert call is a placeholder — this function logs the intended operations but
+ * does not perform writes until insertion calls are implemented.
+ *
+ * @param data - A record whose keys are table names and values are arrays of rows to seed;
+ *                 each row should match the target table's shape/schema when insertion is enabled.
+ */
 export async function seedTestData(data: Record<string, unknown[]>) {
 	const { db } = getTestDatabase();
 
@@ -51,16 +83,19 @@ export async function seedTestData(data: Record<string, unknown[]>) {
 }
 
 /**
- * Playwright test helper to reset database before each test
- * Use this in test.beforeEach() hooks
+ * Playwright helper that resets the test database before each test.
+ *
+ * Call from test.beforeEach(...) to ensure a clean database state for every test.
  */
 export async function resetDatabaseBeforeTest() {
 	await resetDatabaseForTest();
 }
 
 /**
- * Playwright test helper to reset database before each test file
- * Use this in test.beforeAll() hooks
+ * Reset the test database once before a Playwright test file runs.
+ *
+ * Intended for use inside Playwright's `test.beforeAll()` hook to ensure a clean
+ * database state for the file's tests.
  */
 export async function resetDatabaseBeforeFile() {
 	await resetDatabaseForTest();

@@ -4,18 +4,26 @@ import { notFound } from "next/navigation";
 import { api } from "~/trpc/server";
 
 /**
- * Event detail page component displaying a single event's information.
+ * Server component that renders the event detail page for a single event.
  *
- * Shows the full details of an event including title, creation date,
- * and provides navigation back to the event list.
+ * Fetches the event by ID from the server-side API and renders the title,
+ * creation date, and an optional updated date. If the event does not exist,
+ * this component triggers a 404 via `notFound()`.
  *
- * @param params - Route parameters containing the event ID (must be awaited in Next.js 15)
- * @returns The event detail page JSX element or 404 if event not found
+ * Props:
+ * - `params` — a Promise that resolves to an object containing the route `id` (Next.js 15 route param).
+ *
+ * Accessibility:
+ * - Uses a semantic `<main>` landmark and an `h1` for the event title.
+ * - The back navigation is a keyboard-focusable link; ensure any surrounding layout preserves skip-link and focus order.
+ *
+ * @param params - Promise resolving to `{ id: string }`, the route parameters for the page.
+ * @returns The server-rendered JSX for the event detail page; triggers a 404 response when the event is not found.
  *
  * @example
  * ```tsx
- * // Automatically rendered at route "/events/[id]"
- * <EventDetailPage params={Promise.resolve({ id: "123" })} />
+ * // Rendered automatically at the route "/events/[id]".
+ * <EventDetailPage params={Promise.resolve({ id: '123' })} />
  * ```
  */
 export default async function EventDetailPage({
