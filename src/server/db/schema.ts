@@ -5,9 +5,9 @@ import type { AdapterAccount } from "next-auth/adapters";
 import { uuidv7 } from "uuidv7";
 
 /**
- * A helper function to create a default UUID column.
- * @param d - The Drizzle ORM column builder.
- * @returns A Drizzle ORM column builder with a default UUID v7.
+ * Creates a default UUID v7 column for database tables.
+ * @param d - The Drizzle ORM column builder
+ * @returns A varchar column with UUID v7 as default value
  */
 const defaultUUID = (d: PgColumnsBuilders) =>
 	d

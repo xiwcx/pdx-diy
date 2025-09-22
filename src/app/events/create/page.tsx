@@ -7,7 +7,7 @@ export default async function CreateEventPage() {
 	const session = await auth();
 
 	if (!session) {
-		redirect("/api/auth/signin");
+		redirect("/api/auth/signin?callbackUrl=%2Fevents%2Fcreate");
 	}
 
 	return (

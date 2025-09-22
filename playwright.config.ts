@@ -61,16 +61,16 @@ export default defineConfig({
 				// Explicitly no storage state for unauthenticated tests
 				storageState: { cookies: [], origins: [] },
 			},
-			dependencies: ["setup auth"],
 			testMatch: /homepage\.spec\.ts/,
 		},
 	],
 
 	/* Run your local dev server before starting the tests */
 	webServer: {
+		// TODO: probably change this to build and start to be closer to production
 		command: "pnpm e2e:db:setup && pnpm dev --turbo",
 		url: "http://localhost:3000",
-		reuseExistingServer: !process.env.CI,
+		reuseExistingServer: false,
 		timeout: 120 * 1000, // 2 minutes timeout
 		env: {
 			DATABASE_URL: "postgresql://test:test@localhost:5433/test",

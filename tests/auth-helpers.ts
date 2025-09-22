@@ -25,34 +25,31 @@ export async function createTestUser() {
 	const user = TEST_USER;
 
 	// Try to insert user, ignore if already exists
-	try {
-		await db.insert(users).values({
+
+	await db
+		.insert(users)
+		.values({
 			id: user.id,
 			email: user.email,
 			name: user.name,
 			emailVerified: new Date(),
 			image: null,
-		});
-	} catch (error) {
-		// User already exists, that's fine
-		console.log("Test user already exists, continuing...");
-	}
+		})
+		.onConflictDoNothing({ target: users.id });
 
 	// For testing, we'll create a simple session token
 	// NextAuth.js will validate this against the database
-	const sessionToken = `test-session-token-${user.id}-${Date.now()}`;
+	const sessionToken = `test-session-token-${user.id}-${crypto.randomUUID()}`;
 
 	// Try to insert session, ignore if already exists
-	try {
-		await db.insert(sessions).values({
+	await db
+		.insert(sessions)
+		.values({
 			sessionToken: sessionToken,
 			userId: user.id,
 			expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-		});
-	} catch (error) {
-		// Session already exists, that's fine
-		console.log("Test session already exists, continuing...");
-	}
+		})
+		.onConflictDoNothing({ target: sessions.sessionToken });
 
 	return { user, sessionId: sessionToken };
 }
@@ -69,11 +66,8 @@ export async function authenticatePage(page: Page) {
 		{
 			name: "authjs.session-token",
 			value: sessionId,
-			domain: "localhost",
-			path: "/",
+			url: "http://localhost:3000",
 			httpOnly: true,
-			secure: false, // false for localhost
-			sameSite: "Lax",
 		},
 	]);
 

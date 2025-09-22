@@ -33,6 +33,8 @@ declare module "next-auth" {
 	// }
 }
 
+const maxAge = 14 * 24 * 60 * 60; // 14 days
+
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
@@ -64,22 +66,17 @@ export const authConfig = {
 	}),
 	session: {
 		strategy: process.env.NODE_ENV === "production" ? "jwt" : "database",
-		maxAge: 30 * 24 * 60 * 60, // 30 days
+		maxAge,
 	},
 	// JWT configuration only for production
 	...(process.env.NODE_ENV === "production" && {
-		jwt: {
-			maxAge: 30 * 24 * 60 * 60, // 30 days
-		},
+		jwt: { maxAge },
 	}),
 	callbacks: {
 		// JWT callback only for production
 		...(process.env.NODE_ENV === "production" && {
 			jwt: async ({ token, user }) => {
-				// If user is provided (during sign in), add user data to token
-				if (user) {
-					token.id = user.id;
-				}
+				if (user) token.sub = String(user.id);
 				return token;
 			},
 		}),
@@ -97,13 +94,17 @@ export const authConfig = {
 			}
 			// For JWT strategy (production), token is provided
 			if (token) {
-				return {
-					...session,
-					user: {
-						...session.user,
-						id: token.id as string,
-					},
-				};
+				// Safely derive user ID from available sources
+				const userId = token.sub ?? (token as { id?: string }).id;
+				if (userId) {
+					return {
+						...session,
+						user: {
+							...session.user,
+							id: String(userId),
+						},
+					};
+				}
 			}
 			return session;
 		},

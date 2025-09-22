@@ -1,16 +1,21 @@
 #!/usr/bin/env tsx
 
 /**
- * Script to reset the test database by dropping all tables and recreating them
- * This ensures a clean state for e2e tests
+ * Script to reset the test database for e2e tests.
+ * Truncates event data while preserving auth tables.
  */
 
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
-const DATABASE_URL = "postgresql://test:test@localhost:5433/test";
+const DATABASE_URL =
+	process.env.TEST_DATABASE_URL ?? "postgresql://test:test@localhost:5433/test";
 
+/**
+ * Resets the test database by clearing event data while preserving auth tables.
+ * This allows the web server to continue functioning while clearing test data.
+ */
 export async function resetTestDatabase(): Promise<void> {
 	console.log("🔄 Resetting test database...");
 
@@ -28,7 +33,9 @@ export async function resetTestDatabase(): Promise<void> {
 		// Clear only event data (but keep the tables for the web server)
 		for (const tableName of eventTables) {
 			try {
-				await db.execute(sql.raw(`TRUNCATE TABLE "${tableName}" CASCADE`));
+				await db.execute(
+					sql`TRUNCATE TABLE ${sql.identifier(tableName)} CASCADE`,
+				);
 				console.log(`   ✓ Cleared data from table: ${tableName}`);
 			} catch (error) {
 				console.warn(
@@ -45,7 +52,7 @@ export async function resetTestDatabase(): Promise<void> {
 		console.log("✅ Test database reset complete");
 	} catch (error) {
 		console.error("❌ Error resetting test database:", error);
-		process.exit(1);
+		throw error;
 	} finally {
 		await client.end();
 	}
@@ -55,6 +62,6 @@ export async function resetTestDatabase(): Promise<void> {
 if (import.meta.url === `file://${process.argv[1]}`) {
 	resetTestDatabase().catch((error) => {
 		console.error("❌ Fatal error:", error);
-		process.exit(1);
+		throw error;
 	});
 }

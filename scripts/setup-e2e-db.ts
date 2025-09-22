@@ -8,10 +8,16 @@
 import { execSync } from "node:child_process";
 import { resetTestDatabase } from "./reset-test-db.js";
 
+/**
+ * Sets up the e2e test database by starting Docker, resetting data, and pushing schema.
+ */
 export async function setupE2EDatabase(): Promise<void> {
 	console.log("🚀 Setting up e2e test database...");
 
 	try {
+		// Check if Docker is available
+		await checkDockerAvailability();
+
 		// Start the test database
 		console.log("📦 Starting test database container...");
 		execSync("docker compose up -d test-db", { stdio: "inherit" });
@@ -36,16 +42,43 @@ export async function setupE2EDatabase(): Promise<void> {
 		console.log("✅ E2E test database setup complete");
 	} catch (error) {
 		console.error("❌ Error setting up e2e test database:", error);
-		process.exit(1);
+		throw error;
 	}
 }
 
+/**
+ * Verifies that Docker is available and running for database operations.
+ */
+async function checkDockerAvailability(): Promise<void> {
+	try {
+		// Check if docker command exists and is accessible
+		execSync("docker --version", { stdio: "pipe" });
+		// Check if docker compose is available
+		execSync("docker compose version", { stdio: "pipe" });
+		// Check if docker daemon is running
+		execSync("docker info", { stdio: "pipe" });
+		console.log("🐳 Docker is available and running");
+	} catch (error) {
+		console.error("❌ Docker is not available or not running");
+		console.error("💡 Please start Docker Desktop and try again");
+		console.error("   Error details:", (error as Error).message);
+		throw new Error(
+			"Docker is required for e2e tests. Please start Docker Desktop and try again.",
+		);
+	}
+}
+
+/**
+ * Verifies that all required database tables exist after schema push.
+ */
 async function verifyDatabaseSchema(): Promise<void> {
 	const { drizzle } = await import("drizzle-orm/postgres-js");
 	const postgres = (await import("postgres")).default;
 	const { sql } = await import("drizzle-orm");
 
-	const DATABASE_URL = "postgresql://test:test@localhost:5433/test";
+	const DATABASE_URL =
+		process.env.TEST_DATABASE_URL ??
+		"postgresql://test:test@localhost:5433/test";
 
 	try {
 		const client = postgres(DATABASE_URL);
@@ -87,6 +120,11 @@ async function verifyDatabaseSchema(): Promise<void> {
 	}
 }
 
+/**
+ * Waits for the database to be ready by attempting connections with retries.
+ * @param maxRetries - Maximum number of connection attempts
+ * @param delay - Delay between attempts in milliseconds
+ */
 async function waitForDatabase(maxRetries = 30, delay = 1000): Promise<void> {
 	const { drizzle } = await import("drizzle-orm/postgres-js");
 	const postgres = (await import("postgres")).default;
@@ -124,6 +162,6 @@ async function waitForDatabase(maxRetries = 30, delay = 1000): Promise<void> {
 if (import.meta.url === `file://${process.argv[1]}`) {
 	setupE2EDatabase().catch((error) => {
 		console.error("❌ Fatal error:", error);
-		process.exit(1);
+		throw error;
 	});
 }

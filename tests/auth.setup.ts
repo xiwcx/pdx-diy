@@ -1,3 +1,4 @@
+import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect, test as setup } from "@playwright/test";
@@ -43,5 +44,6 @@ setup("authenticate", async ({ page }) => {
 	await expect(page.getByText("Logged in as")).toBeVisible();
 
 	// Save the authentication state
+	await fs.mkdir(path.dirname(authFile), { recursive: true });
 	await page.context().storageState({ path: authFile });
 });

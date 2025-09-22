@@ -40,8 +40,10 @@ The test database runs in a Docker container on port 5433 to avoid conflicts wit
 # Start database
 docker compose up -d test-db
 
-# Stop database  
-docker compose down test-db
+# Stop database
+docker compose stop test-db
+# (optional) Remove the single service + volumes
+# docker compose rm -fsv test-db
 
 # View logs
 docker compose logs test-db
@@ -52,7 +54,7 @@ pnpm e2e:db:reset
 
 ## Test Structure
 
-```
+```text
 tests/
 ├── auth.setup.ts          # Authentication setup for tests
 ├── auth-helpers.ts        # Authentication utilities

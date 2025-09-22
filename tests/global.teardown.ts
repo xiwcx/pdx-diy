@@ -15,6 +15,7 @@ export default async function globalTeardown() {
 		console.log("✅ Test database cleanup complete");
 	} catch (error) {
 		console.error("❌ Error during test database cleanup:", error);
-		// Don't throw here as it would mask test failures
+		// Don't throw to avoid masking test failures, but signal teardown issues in CI
+		process.exitCode = process.exitCode ?? 1;
 	}
 }
