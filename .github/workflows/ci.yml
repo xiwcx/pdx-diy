@@ -14,6 +14,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Global environment variables
+env:
+  PNPM_VERSION: "10.15.1"
+
 jobs:
   static-analysis:
     name: Static Analysis
@@ -25,7 +29,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.15.1
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -38,7 +42,6 @@ jobs:
         with:
           path: |
             tsconfig.tsbuildinfo
-            .next/cache
           key: ${{ runner.os }}-typescript-${{ hashFiles('**/tsconfig.json', '**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.ts', '**/*.tsx') }}
           restore-keys: |
             ${{ runner.os }}-typescript-${{ hashFiles('**/tsconfig.json', '**/pnpm-lock.yaml') }}-
@@ -69,7 +72,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.15.1
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -152,7 +155,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.15.1
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -163,13 +166,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Cache TypeScript build info
+        uses: actions/cache@v4
+        with:
+          path: |
+            tsconfig.tsbuildinfo
+          key: ${{ runner.os }}-typescript-${{ hashFiles('**/tsconfig.json', '**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-typescript-${{ hashFiles('**/tsconfig.json', '**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-typescript-
+
       - name: Cache Next.js build
         uses: actions/cache@v4
         with:
           path: |
             .next/cache
             .next/cache/webpack
-            tsconfig.tsbuildinfo
           key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx', '**/next.config.js') }}
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
@@ -187,3 +199,100 @@ jobs:
           POSTHOG_HOST: "https://app.posthog.com"
           NEXT_PUBLIC_POSTHOG_KEY: "phc_placeholder"
           NEXT_PUBLIC_POSTHOG_HOST: "https://app.posthog.com"
+
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [static-analysis, test]
+    timeout-minutes: 60
+    strategy:
+      fail-fast: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - name: Cache TypeScript build info
+        uses: actions/cache@v4
+        with:
+          path: |
+            tsconfig.tsbuildinfo
+          key: ${{ runner.os }}-typescript-${{ hashFiles('**/tsconfig.json', '**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-typescript-${{ hashFiles('**/tsconfig.json', '**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-typescript-
+
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: |
+            .next/cache
+          key: ${{ runner.os }}-nextjs-turbo-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx', '**/next.config.js') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-turbo-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-nextjs-turbo-
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Start test database with Docker Compose
+        run: |
+          set -euo pipefail
+          docker compose up -d test-db
+
+          # Verify container is running
+          if ! docker ps --format "table {{.Names}}" | grep -q "pdx-diy-test-db"; then
+            echo "Error: test-db container failed to start"
+            docker compose ps
+            docker compose logs test-db
+            exit 1
+          fi
+
+          # Wait for database to be ready using the container name
+          timeout 60s bash -c 'until docker exec pdx-diy-test-db pg_isready -U test -d test; do sleep 2; done'
+
+      - name: Run Playwright tests
+        run: pnpm e2e:test
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Upload Playwright Traces
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7
+
+      - name: Clean up test database
+        if: always()
+        run: |
+          docker compose down -v
