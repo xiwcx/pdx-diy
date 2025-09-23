@@ -261,9 +261,17 @@ jobs:
         run: |
           set -euo pipefail
           docker compose up -d test-db
-          CONTAINER_ID="$(docker compose ps -q test-db)"
-          # Wait for database to be ready
-          timeout 60s bash -c 'until docker exec "$CONTAINER_ID" pg_isready -U test -d test; do sleep 2; done'
+
+          # Verify container is running
+          if ! docker ps --format "table {{.Names}}" | grep -q "pdx-diy-test-db"; then
+            echo "Error: test-db container failed to start"
+            docker compose ps
+            docker compose logs test-db
+            exit 1
+          fi
+
+          # Wait for database to be ready using the container name
+          timeout 60s bash -c 'until docker exec pdx-diy-test-db pg_isready -U test -d test; do sleep 2; done'
 
       - name: Run Playwright tests
         run: pnpm e2e:test
